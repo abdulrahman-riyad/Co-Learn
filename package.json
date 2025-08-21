@@ -1,0 +1,20 @@
+{
+  "name": "egypt-lms-platform",
+  "version": "1.0.0",
+  "private": true,
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "dev": "turbo run dev",
+    "build": "turbo run build",
+    "test": "turbo run test",
+    "docker:up": "docker-compose -f infrastructure/docker/development/docker-compose.yml up -d",
+    "docker:down": "docker-compose -f infrastructure/docker/development/docker-compose.yml down",
+    "docker:logs": "docker-compose -f infrastructure/docker/development/docker-compose.yml logs -f"
+  },
+  "devDependencies": {
+    "turbo": "latest"
+  }
+}

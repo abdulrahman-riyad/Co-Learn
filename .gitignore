@@ -1,0 +1,47 @@
+# Dependencies
+node_modules/
+*.pyc
+__pycache__/
+venv/
+.venv/
+
+# Environment
+.env
+.env.local
+*.local
+
+# Build
+dist/
+build/
+.next/
+out/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+.DS_Store
+
+# Logs
+logs/
+*.log
+
+# Database
+*.sqlite
+*.db
+
+# Testing
+coverage/
+.coverage
+.pytest_cache/
+
+# Docker
+.docker/
+
+# Uploads
+uploads/
+temp/
+
+# Cache
+.cache/
+.turbo/
