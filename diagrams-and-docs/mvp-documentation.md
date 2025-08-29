@@ -18,7 +18,7 @@
 ## 1. Project Overview
 
 ### 1.1 Purpose
-The Egypt LMS Platform is a production-grade learning management system designed specifically for Egyptian high school students (Thanaweya Amma), combining Google Classroom functionality with advanced AI-powered grading and personalized feedback systems.
+Co-Learn is a production-grade learning management system designed specifically for Egyptian high school students (Thanaweya Amma), combining Google Classroom functionality with advanced AI-powered grading and personalized feedback systems.
 
 ### 1.2 Scope
 This MVP includes:
@@ -770,12 +770,12 @@ graph TB
 
 | Method | Endpoint | Description | Request Body | Response |
 |--------|----------|-------------|--------------|----------|
-| POST | `/api/auth/register` | Register new user | `{email, password, role, firstName, lastName}` | `{token, user}` |
-| POST | `/api/auth/login` | User login | `{email, password}` | `{token, refreshToken, user}` |
+| POST | `/api/auth/register` | Register new user | `{email, password, firstName, lastName}` | `{success}` |
+| POST | `/api/auth/login` | User login | `{email, password}` | `{refreshToken, user}` |
 | POST | `/api/auth/refresh` | Refresh token | `{refreshToken}` | `{token, refreshToken}` |
 | POST | `/api/auth/logout` | Logout user | - | `{success}` |
 | POST | `/api/auth/verify-email` | Verify email | `{token}` | `{success}` |
-| POST | `/api/auth/reset-password` | Reset password | `{email}` or `{token, password}` | `{success}` |
+| POST | `/api/auth/reset-password?token` | Reset password | `{email}` or `{token, password}` | `{success}` |
 
 ### Course Endpoints
 
