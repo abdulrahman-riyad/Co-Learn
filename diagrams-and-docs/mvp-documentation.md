@@ -1,4 +1,4 @@
-# Egypt LMS Platform - Complete MVP Documentation
+# Co-Learn - MVP Documentation
 
 ## Table of Contents
 1. [Requirements Document](#requirements-document)
