@@ -133,7 +133,7 @@ This MVP includes:
 
 # System Architecture Diagrams
 
-## Level 1: Simplified Architecture
+## Simplified Architecture
 
 ```mermaid
 graph TB
@@ -159,191 +159,67 @@ graph TB
     AI --> DB
 ```
 
-## Level 2: Medium Detail Architecture
+## More Detailed System Architecture
 
 ```mermaid
 graph TB
     subgraph "Client Layer"
         Browser[Web Browser]
-        Mobile[Mobile Browser]
     end
     
-    subgraph "Presentation Layer"
-        NextJS[Next.js Frontend<br/>React + TypeScript]
+    subgraph "CDN"
+        CloudFlare[CloudFlare CDN<br/>Static Assets]
     end
     
-    subgraph "API Layer"
-        Gateway[API Gateway<br/>Nginx]
-        NodeAPI[Node.js Backend<br/>NestJS]
-        AIGateway[AI Gateway<br/>FastAPI]
-    end
-    
-    subgraph "Service Layer"
-        Auth[Auth Service]
-        Course[Course Service]
-        Grading[AI Grading]
-        OCR[OCR Service]
-        Notify[Notification Service]
-    end
-    
-    subgraph "Data Layer"
-        Postgres[(PostgreSQL<br/>Main Data)]
-        MongoDB[(MongoDB<br/>Content)]
-        Redis[(Redis<br/>Cache)]
-        S3[Object Storage<br/>MinIO]
-    end
-    
-    Browser --> NextJS
-    Mobile --> NextJS
-    NextJS --> Gateway
-    Gateway --> NodeAPI
-    Gateway --> AIGateway
-    NodeAPI --> Auth
-    NodeAPI --> Course
-    NodeAPI --> Notify
-    AIGateway --> Grading
-    AIGateway --> OCR
-    
-    Auth --> Postgres
-    Course --> Postgres
-    Course --> MongoDB
-    Grading --> Redis
-    OCR --> S3
-```
-
-## Level 3: Detailed Architecture
-
-```mermaid
-graph TB
-    subgraph "Client Layer"
-        Web[Web Browser<br/>Chrome/Safari/Firefox]
-        Mobile[Mobile Browser<br/>Responsive PWA]
-        API_Client[API Clients<br/>Postman/Scripts]
-    end
-    
-    subgraph "CDN & Static Assets"
-        CloudFlare[CloudFlare CDN]
-        Static[Static Files<br/>Images/CSS/JS]
-    end
-    
-    subgraph "Load Balancer"
-        Nginx[Nginx<br/>Reverse Proxy<br/>SSL Termination]
-    end
-    
-    subgraph "Frontend Application"
-        NextJS[Next.js 14<br/>App Router]
-        React[React Components<br/>TypeScript]
-        Zustand[State Management<br/>Zustand]
-        TailwindCSS[Styling<br/>TailwindCSS]
-        SocketClient[Socket.io Client<br/>Real-time]
+    subgraph "Frontend"
+        NextJS[Next.js 14<br/>• App Router<br/>• Server Components]
+        UI[UI Layer<br/>• TailwindCSS<br/>• Shadcn/ui]
     end
     
     subgraph "Backend Services"
-        subgraph "Node.js Backend"
-            NestJS[NestJS Framework]
-            AuthModule[Auth Module<br/>JWT/Passport]
-            CourseModule[Course Module]
-            AssignModule[Assignment Module]
-            NotifyModule[Notification Module]
-            MessageModule[Messaging Module]
-            CalendarModule[Calendar Module]
-        end
-        
-        subgraph "Python AI Services"
-            AIGateway[AI Gateway<br/>FastAPI]
-            OCRService[OCR Service<br/>Tesseract/EasyOCR]
-            GradingService[Grading Service<br/>OpenAI/Claude]
-            FeedbackService[Feedback Service<br/>LangChain]
-            InsightsService[Insights Service<br/>Analytics]
-        end
+        Gateway[API Gateway<br/>Nginx]
+        NodeAPI[Node.js Backend<br/>• NestJS<br/>• REST APIs]
+        AIGateway[AI Gateway<br/>• FastAPI<br/>• Async processing]
     end
     
-    subgraph "Message Queue"
-        RabbitMQ[RabbitMQ]
-        BullQueue[Bull Queue<br/>Redis-based]
+    subgraph "Microservices"
+        AuthService[Auth Service<br/>JWT/Passport]
+        CourseService[Course Service<br/>CRUD ops]
+        NotifyService[Notification<br/>Email/Push]
+        OCRService[OCR Service<br/>Multi-engine]
+        GradeService[Grading Service<br/>LLM-based]
     end
     
     subgraph "Databases"
-        subgraph "Primary Storage"
-            Postgres[(PostgreSQL<br/>Users/Courses/Grades)]
-            MongoDB[(MongoDB<br/>Materials/Content)]
-        end
-        
-        subgraph "Cache & Session"
-            Redis[(Redis<br/>Cache/Sessions)]
-        end
-        
-        subgraph "Object Storage"
-            MinIO[MinIO/S3<br/>Files/Uploads]
-        end
-        
-        subgraph "Vector Storage"
-            ChromaDB[(ChromaDB<br/>Embeddings)]
-        end
+        Postgres[(PostgreSQL<br/>Users, Courses)]
+        MongoDB[(MongoDB<br/>Materials)]
+        Redis[(Redis<br/>Cache, Queue)]
+        MinIO[MinIO<br/>File Storage]
     end
     
-    subgraph "External Services"
-        Gmail[Gmail API<br/>Email]
-        GoogleCal[Google Calendar API]
-        OpenAI[OpenAI API<br/>GPT-4]
-        Anthropic[Anthropic API<br/>Claude]
-    end
+    Browser --> CloudFlare
+    CloudFlare --> NextJS
+    NextJS --> UI
+    NextJS --> Gateway
     
-    subgraph "Monitoring & Logging"
-        Prometheus[Prometheus<br/>Metrics]
-        Grafana[Grafana<br/>Dashboards]
-        Sentry[Sentry<br/>Error Tracking]
-        ELK[ELK Stack<br/>Logs]
-    end
+    Gateway --> NodeAPI
+    Gateway --> AIGateway
     
-    Web --> CloudFlare
-    Mobile --> CloudFlare
-    CloudFlare --> Static
-    CloudFlare --> Nginx
-    API_Client --> Nginx
-    
-    Nginx --> NextJS
-    Nginx --> NestJS
-    Nginx --> AIGateway
-    
-    NextJS --> React
-    React --> Zustand
-    React --> TailwindCSS
-    NextJS --> SocketClient
-    
-    NestJS --> AuthModule
-    NestJS --> CourseModule
-    NestJS --> AssignModule
-    NestJS --> NotifyModule
-    NestJS --> MessageModule
-    NestJS --> CalendarModule
+    NodeAPI --> AuthService
+    NodeAPI --> CourseService
+    NodeAPI --> NotifyService
     
     AIGateway --> OCRService
-    AIGateway --> GradingService
-    AIGateway --> FeedbackService
-    AIGateway --> InsightsService
+    AIGateway --> GradeService
     
-    AuthModule --> Postgres
-    CourseModule --> Postgres
-    AssignModule --> MongoDB
-    NotifyModule --> RabbitMQ
-    MessageModule --> Redis
-    
+    AuthService --> Postgres
+    CourseService --> Postgres
+    CourseService --> MongoDB
+    NotifyService --> Redis
     OCRService --> MinIO
-    GradingService --> ChromaDB
-    FeedbackService --> OpenAI
-    InsightsService --> Postgres
-    
-    NotifyModule --> Gmail
-    CalendarModule --> GoogleCal
-    GradingService --> Anthropic
-    
-    NestJS --> Prometheus
-    AIGateway --> Prometheus
-    Prometheus --> Grafana
-    NestJS --> Sentry
-    NestJS --> ELK
+    GradeService --> Redis
 ```
+
 
 ---
 
@@ -352,45 +228,31 @@ graph TB
 ```mermaid
 graph TB
     subgraph "Frontend Components"
-        UI[UI Components]
-        UI --> Auth_UI[Authentication<br/>Login/Register]
-        UI --> Dashboard_UI[Dashboard<br/>Course Cards]
-        UI --> Course_UI[Course Management<br/>CRUD Operations]
-        UI --> Assign_UI[Assignments<br/>Create/Submit]
-        UI --> Grade_UI[Grading Display<br/>Feedback View]
-        UI --> Notify_UI[Notifications<br/>Bell/Toasts]
-        UI --> Calendar_UI[Calendar View<br/>FullCalendar]
-        UI --> Message_UI[Messaging<br/>Chat Interface]
-        UI --> Insights_UI[Analytics<br/>Charts/Graphs]
+        UI[UI Layer]
+        UI --> Pages[Pages<br/>• Dashboard<br/>• Courses<br/>• Assignments]
+        UI --> Components[Components<br/>• Forms<br/>• Cards<br/>• Tables]
+        UI --> Features[Features<br/>• Auth flow<br/>• File upload<br/>• Real-time]
     end
     
-    subgraph "Backend Components"
+    subgraph "Backend Services"
         API[API Layer]
-        API --> Auth_API[Auth Controller<br/>JWT/Sessions]
-        API --> Course_API[Course Controller<br/>CRUD/Enrollment]
-        API --> Assign_API[Assignment Controller<br/>Submissions]
-        API --> Storage_API[Storage Service<br/>File Upload]
-        API --> Notify_API[Notification Service<br/>Email/Push]
-        API --> Message_API[Message Gateway<br/>WebSocket]
-        API --> Calendar_API[Calendar Service<br/>Events]
+        API --> Controllers[Controllers<br/>• REST endpoints<br/>• Validation]
+        API --> Services[Services<br/>• Business logic<br/>• Data processing]
+        API --> Integration[Integrations<br/>• AI Gateway<br/>• External APIs]
     end
     
-    subgraph "AI Components"
+    subgraph "AI Pipeline"
         AI[AI Services]
-        AI --> OCR[OCR Engine<br/>Text Extraction]
-        AI --> Grader[Grading Engine<br/>Evaluation]
-        AI --> Feedback[Feedback Generator<br/>Personalized]
-        AI --> Analytics[Analytics Engine<br/>Insights]
-        AI --> NLP[NLP Processor<br/>Language Understanding]
+        AI --> OCR[OCR<br/>• Text extraction<br/>• Multi-language]
+        AI --> Grading[Grading<br/>• Rubric eval<br/>• Score calc]
+        AI --> Analytics[Analytics<br/>• Insights<br/>• Patterns]
     end
     
-    subgraph "Data Components"
+    subgraph "Data Management"
         Data[Data Layer]
-        Data --> UserDB[User Management<br/>PostgreSQL]
-        Data --> CourseDB[Course Data<br/>PostgreSQL]
-        Data --> ContentDB[Content Storage<br/>MongoDB]
-        Data --> CacheDB[Cache Layer<br/>Redis]
-        Data --> FileDB[File Storage<br/>MinIO]
+        Data --> Relational[PostgreSQL<br/>• Users<br/>• Courses<br/>• Grades]
+        Data --> NoSQL[MongoDB<br/>• Content<br/>• Materials]
+        Data --> Cache[Redis<br/>• Sessions<br/>• Queue]
     end
 ```
 
@@ -400,36 +262,26 @@ graph TB
 
 ```mermaid
 graph LR
-    subgraph "Functional Requirements"
-        FR[Functional]
-        FR --> Auth_Req[Authentication<br/>- Login/Register<br/>- JWT Tokens<br/>- Role-based]
-        FR --> Course_Req[Courses<br/>- CRUD Operations<br/>- Enrollment<br/>- Archiving]
-        FR --> Assign_Req[Assignments<br/>- Create/Submit<br/>- Due Dates<br/>- File Upload]
-        FR --> AI_Req[AI Grading<br/>- OCR Processing<br/>- Auto-grading<br/>- Feedback]
-        FR --> Comm_Req[Communication<br/>- Notifications<br/>- Messaging<br/>- Calendar]
+    subgraph "Core Features"
+        Features[Functional]
+        Features --> UserMgmt[User Management<br/>• Registration<br/>• Authentication<br/>• Roles]
+        Features --> CourseMgmt[Course System<br/>• Create/Join<br/>• Materials<br/>• Assignments]
+        Features --> AIGrading[AI Grading<br/>• OCR<br/>• Auto-grade<br/>• Feedback]
+        Features --> Comm[Communication<br/>• Notifications<br/>• Messages<br/>• Calendar]
     end
     
-    subgraph "Non-Functional Requirements"
-        NFR[Non-Functional]
-        NFR --> Perf[Performance<br/>- Load < 2s<br/>- API < 500ms<br/>- Grade < 30s]
-        NFR --> Scale[Scalability<br/>- 10K users<br/>- Horizontal scaling<br/>- Load balancing]
-        NFR --> Secure[Security<br/>- HTTPS/SSL<br/>- JWT Auth<br/>- Rate limiting]
-        NFR --> Reliable[Reliability<br/>- 99.9% uptime<br/>- Auto-save<br/>- Backup]
-        NFR --> Usable[Usability<br/>- Responsive<br/>- Multi-language<br/>- Accessible]
-    end
-    
-    subgraph "Technical Requirements"
-        Tech[Technical]
-        Tech --> Frontend_Tech[Frontend<br/>- Next.js 14<br/>- TypeScript<br/>- TailwindCSS]
-        Tech --> Backend_Tech[Backend<br/>- NestJS<br/>- PostgreSQL<br/>- Redis]
-        Tech --> AI_Tech[AI Stack<br/>- Python/FastAPI<br/>- OpenAI API<br/>- LangChain]
-        Tech --> Infra_Tech[Infrastructure<br/>- Docker<br/>- Nginx<br/>- MinIO]
+    subgraph "Quality Attributes"
+        Quality[Non-Functional]
+        Quality --> Performance[Performance<br/>• Response time<br/>• Throughput<br/>• Optimization]
+        Quality --> Reliability[Reliability<br/>• 99.9% uptime<br/>• Error handling<br/>• Recovery]
+        Quality --> Security[Security<br/>• Encryption<br/>• Auth<br/>• Validation]
+        Quality --> UX[User Experience<br/>• Responsive<br/>• Intuitive<br/>• Accessible]
     end
 ```
 
 ---
 
-# Sequence Diagrams
+# Sequence Diagram
 
 ## Main System Flow
 
@@ -445,115 +297,84 @@ sequenceDiagram
     participant Grade as Grading Service
     participant DB as Database
     
-    %% Authentication Flow
     S->>W: Access Platform
-    W->>S: Show Login Page
-    S->>W: Enter Credentials
+    W->>API: Request Login Page
+    S->>W: Submit Credentials
     W->>API: POST /auth/login
-    API->>Auth: Validate Credentials
+    API->>Auth: Validate
     Auth->>DB: Check User
     DB-->>Auth: User Data
-    Auth-->>API: Generate JWT
-    API-->>W: Return Token
-    W-->>S: Redirect to Dashboard
+    Auth-->>API: JWT Token
+    API-->>W: Auth Success
+    W-->>S: Dashboard
     
-    %% Course Enrollment
-    S->>W: Enter Course Code
-    W->>API: POST /courses/enroll
-    API->>Course: Validate Code
-    Course->>DB: Check Course
-    DB-->>Course: Course Data
-    Course->>DB: Add Enrollment
-    Course-->>API: Success
-    API-->>W: Enrollment Confirmed
-    W-->>S: Show Course
+    S->>W: View Courses
+    W->>API: GET /courses
+    API->>Course: Fetch Courses
+    Course->>DB: Query
+    DB-->>Course: Course List
+    Course-->>API: Courses
+    API-->>W: Course Data
+    W-->>S: Display Courses
     
-    %% Assignment Submission
-    S->>W: Upload Assignment (PDF)
-    W->>API: POST /assignments/submit
+    S->>W: Submit Assignment (PDF)
+    W->>API: POST /submit
     API->>DB: Save Submission
-    API->>AI: Process Submission
-    
-    %% AI Grading Flow
+    API->>AI: Process File
     AI->>OCR: Extract Text
-    OCR-->>AI: Extracted Content
+    OCR-->>AI: Text Content
     AI->>Grade: Grade Assignment
-    Grade-->>AI: Grading Result
-    AI-->>API: Feedback & Score
-    
-    API->>DB: Save Results
-    API-->>W: Submission Complete
+    Grade-->>AI: Results
+    AI-->>API: Feedback
+    API->>DB: Save Grade
+    API-->>W: Complete
     W-->>S: Show Feedback
-    
-    %% Real-time Notification
-    API-->>W: WebSocket: New Grade
-    W-->>S: Show Notification
 ```
 
 ## AI Grading Detailed Flow
 
 ```mermaid
 sequenceDiagram
-    participant T as Teacher
     participant S as Student
-    participant W as Web App
-    participant API as Backend
-    participant Queue as Bull Queue
+    participant B as Backend
+    participant Q as Queue
     participant AI as AI Gateway
-    participant OCR as OCR Service
-    participant LLM as OpenAI/Claude
-    participant Cache as Redis
-    participant DB as PostgreSQL
+    participant OCR as OCR Engine
+    participant LLM as LLM Service
+    participant Cache as Redis Cache
+    participant DB as Database
     
-    %% Teacher Creates Assignment
-    T->>W: Create Assignment
-    W->>API: POST /assignments
-    API->>DB: Save Assignment
-    API-->>W: Assignment Created
+    S->>B: Upload Assignment
+    B->>DB: Create Submission
+    B->>Q: Add Job
+    B-->>S: Processing...
     
-    %% Student Submits
-    S->>W: Upload PDF/Images
-    W->>API: POST /submissions
-    API->>DB: Create Submission Record
-    API->>Queue: Add Grading Job
-    API-->>W: Processing Started
+    Q->>AI: Process Job
+    AI->>Cache: Check Cache
     
-    %% Async Processing
-    Queue->>AI: Process Job
-    
-    AI->>Cache: Check if Cached
     alt Not Cached
         AI->>OCR: Extract Text
-        OCR->>OCR: Preprocess Image
-        OCR->>OCR: Run Tesseract
+        Note over OCR: Multi-engine:<br/>Tesseract, Paddle,<br/>TrOCR
         OCR-->>AI: Extracted Text
         
-        AI->>LLM: Send for Grading
-        Note over LLM: Include: Text, Rubric,<br/>Answer Key, Student History
-        LLM-->>AI: Grading Result
-        
-        AI->>LLM: Generate Feedback
-        Note over LLM: Personalized based on<br/>mistakes and history
-        LLM-->>AI: Feedback Text
+        AI->>LLM: Grade
+        Note over LLM: Context:<br/>Text, Rubric,<br/>Answer Key
+        LLM-->>AI: Grade Result
         
         AI->>Cache: Store Result
     else Cached
         Cache-->>AI: Return Cached
     end
     
-    AI-->>Queue: Job Complete
-    Queue->>API: Update Status
-    API->>DB: Save Results
-    API->>W: WebSocket: Grade Ready
-    W->>S: Show Notification
+    AI-->>Q: Complete
+    Q->>B: Update Status
+    B->>DB: Save Results
+    B->>S: Notify: Grade Ready
     
-    %% Student Views Feedback
-    S->>W: View Feedback
-    W->>API: GET /submissions/{id}
-    API->>DB: Get Results
-    DB-->>API: Feedback Data
-    API-->>W: Return Feedback
-    W-->>S: Display Feedback
+    S->>B: View Feedback
+    B->>DB: Get Results
+    DB-->>B: Feedback
+    B-->>S: Display
 ```
 
 ---
@@ -562,79 +383,48 @@ sequenceDiagram
 
 ```mermaid
 graph TB
-    subgraph "Data Input"
-        UserInput[User Input<br/>Forms/Files]
-        FileUpload[File Upload<br/>PDF/Images]
-        APIRequest[API Requests]
-        WebSocket[WebSocket<br/>Real-time]
+    subgraph "Input Sources"
+        UserInput[User Input<br/>• Forms<br/>• Files]
+        FileUpload[File Upload<br/>• PDF<br/>• Images]
+        APIRequests[API Requests<br/>• REST<br/>• WebSocket]
     end
     
-    subgraph "Processing Layer"
-        Validation[Input Validation]
-        Auth[Authentication]
-        Transform[Data Transform]
-        Queue[Job Queue]
+    subgraph "Processing Pipeline"
+        Validation[Input Validation<br/>• Schema check<br/>• Sanitization]
+        Auth[Authentication<br/>• JWT verify<br/>• Role check]
+        BusinessLogic[Business Logic<br/>• Course ops<br/>• Assignment ops]
+        AIProcessing[AI Processing<br/>• OCR<br/>• Grading]
     end
     
-    subgraph "Business Logic"
-        CourseLogic[Course Management]
-        AssignLogic[Assignment Logic]
-        GradeLogic[Grading Logic]
-        NotifyLogic[Notification Logic]
+    subgraph "Storage Layer"
+        Primary[(PostgreSQL<br/>Transactional)]
+        Document[(MongoDB<br/>Content)]
+        Cache[(Redis<br/>Temporary)]
+        Files[MinIO<br/>Objects]
     end
     
-    subgraph "AI Processing"
-        OCRProcess[OCR Processing]
-        TextAnalysis[Text Analysis]
-        Grading[AI Grading]
-        FeedbackGen[Feedback Generation]
-    end
-    
-    subgraph "Data Storage"
-        TempStorage[Temp Storage<br/>Redis]
-        FileStorage[File Storage<br/>MinIO]
-        TransactionalDB[Transactional<br/>PostgreSQL]
-        DocumentDB[Documents<br/>MongoDB]
-        VectorDB[Vectors<br/>ChromaDB]
-    end
-    
-    subgraph "Output"
-        APIResponse[API Response]
-        EmailNotif[Email]
-        PushNotif[Push Notification]
-        RealtimeUpdate[Real-time Update]
-        Reports[Reports/Analytics]
+    subgraph "Output Channels"
+        APIResponse[API Response<br/>• JSON<br/>• Status codes]
+        Notifications[Notifications<br/>• Email<br/>• Push<br/>• In-app]
+        Analytics[Analytics<br/>• Reports<br/>• Dashboards]
     end
     
     UserInput --> Validation
     FileUpload --> Validation
-    APIRequest --> Auth
-    WebSocket --> Auth
+    APIRequests --> Auth
     
-    Validation --> Transform
-    Auth --> Transform
-    Transform --> CourseLogic
-    Transform --> AssignLogic
-    Transform --> Queue
+    Validation --> Auth
+    Auth --> BusinessLogic
+    BusinessLogic --> AIProcessing
     
-    Queue --> OCRProcess
-    OCRProcess --> TextAnalysis
-    TextAnalysis --> Grading
-    Grading --> FeedbackGen
+    BusinessLogic --> Primary
+    AIProcessing --> Document
+    AIProcessing --> Cache
+    FileUpload --> Files
     
-    CourseLogic --> TransactionalDB
-    AssignLogic --> DocumentDB
-    GradeLogic --> TransactionalDB
-    NotifyLogic --> TempStorage
-    
-    OCRProcess --> FileStorage
-    FeedbackGen --> VectorDB
-    
-    TransactionalDB --> APIResponse
-    DocumentDB --> Reports
-    TempStorage --> RealtimeUpdate
-    NotifyLogic --> EmailNotif
-    NotifyLogic --> PushNotif
+    Primary --> APIResponse
+    Document --> Analytics
+    Cache --> Notifications
 ```
 
 ---
@@ -643,120 +433,57 @@ graph TB
 
 ```mermaid
 graph TB
-    subgraph "Input Layer"
+    subgraph "Document Input"
         PDF[PDF Files]
-        IMG[Images<br/>JPG/PNG]
-        TEXT[Text Input]
-        RUBRIC[Grading Rubric]
+        Images[Images<br/>JPG/PNG]
+        Handwritten[Handwritten<br/>Scans]
     end
     
-    subgraph "OCR Service"
-        PreProcess[Image Preprocessing<br/>Rotation/Enhancement]
-        Tesseract[Tesseract OCR<br/>Multi-language]
-        EasyOCR[EasyOCR<br/>Handwriting]
-        PDFExtract[PDF Text Extraction<br/>PyPDF2]
-        TextClean[Text Cleaning<br/>Arabic/English]
-    end
-    
-    subgraph "AI Gateway"
-        Router[Request Router]
-        Validator[Input Validator]
-        RateLimiter[Rate Limiter]
-        CircuitBreaker[Circuit Breaker]
-    end
-    
-    subgraph "Grading Engine"
-        subgraph "Analysis"
-            ContentAnalyzer[Content Analyzer]
-            RubricMatcher[Rubric Matcher]
-            AnswerComparer[Answer Comparison]
-            MistakeDetector[Mistake Detection]
+    subgraph "OCR Pipeline"
+        Preprocessor[Preprocessor<br/>• Enhance<br/>• Rotate<br/>• Denoise]
+        OCRRouter[OCR Router<br/>• Document type<br/>• Quality check]
+        
+        subgraph "OCR Engines"
+            Tesseract[Tesseract<br/>Printed text]
+            Paddle[PaddleOCR<br/>Multi-language]
+            TrOCR[TrOCR<br/>Handwriting]
         end
         
-        subgraph "LLM Processing"
-            PromptBuilder[Prompt Builder]
-            OpenAIAPI[OpenAI GPT-4]
-            ClaudeAPI[Claude API]
-            ResponseParser[Response Parser]
-        end
-        
-        subgraph "Scoring"
-            ScoreCalculator[Score Calculator]
-            PartialCredit[Partial Credit]
-            WeightedScoring[Weighted Scoring]
-        end
+        ResultMerger[Result Merger<br/>• Voting<br/>• Confidence]
     end
     
-    subgraph "Feedback Generator"
-        PersonalizedFeedback[Personalized Feedback]
-        MistakeExplanation[Mistake Explanations]
-        ImprovementTips[Improvement Tips]
-        ResourceSuggestions[Resource Suggestions]
-        ProgressTracking[Progress Tracking]
+    subgraph "Grading Pipeline"
+        TextAnalyzer[Text Analyzer<br/>• Parse questions<br/>• Extract answers]
+        GradingEngine[Grading Engine<br/>• Rubric match<br/>• Score calc]
+        LLMProcessor[LLM Processor<br/>• GPT-4<br/>• Claude]
+        FeedbackGen[Feedback Generator<br/>• Personalized<br/>• Actionable]
     end
     
-    subgraph "Analytics Engine"
-        PatternAnalyzer[Pattern Analyzer]
-        ClassInsights[Class Insights]
-        StruggleIdentifier[Struggle Areas]
-        TrendAnalysis[Trend Analysis]
-        ReportGenerator[Report Generator]
+    subgraph "Analytics"
+        PatternDetector[Pattern Detector<br/>• Common mistakes<br/>• Struggle areas]
+        InsightsGen[Insights Generator<br/>• Class trends<br/>• Recommendations]
     end
     
-    subgraph "Storage"
-        ResultCache[Redis Cache<br/>Results]
-        HistoryDB[PostgreSQL<br/>History]
-        EmbeddingDB[ChromaDB<br/>Embeddings]
-    end
+    PDF --> Preprocessor
+    Images --> Preprocessor
+    Handwritten --> Preprocessor
     
-    PDF --> PreProcess
-    IMG --> PreProcess
-    PreProcess --> Tesseract
-    PreProcess --> EasyOCR
-    PDF --> PDFExtract
+    Preprocessor --> OCRRouter
+    OCRRouter --> Tesseract
+    OCRRouter --> Paddle
+    OCRRouter --> TrOCR
     
-    Tesseract --> TextClean
-    EasyOCR --> TextClean
-    PDFExtract --> TextClean
+    Tesseract --> ResultMerger
+    Paddle --> ResultMerger
+    TrOCR --> ResultMerger
     
-    TextClean --> Router
-    TEXT --> Router
-    RUBRIC --> Router
+    ResultMerger --> TextAnalyzer
+    TextAnalyzer --> GradingEngine
+    GradingEngine --> LLMProcessor
+    LLMProcessor --> FeedbackGen
     
-    Router --> Validator
-    Validator --> RateLimiter
-    RateLimiter --> CircuitBreaker
-    
-    CircuitBreaker --> ContentAnalyzer
-    ContentAnalyzer --> RubricMatcher
-    RubricMatcher --> AnswerComparer
-    AnswerComparer --> MistakeDetector
-    
-    MistakeDetector --> PromptBuilder
-    PromptBuilder --> OpenAIAPI
-    PromptBuilder --> ClaudeAPI
-    OpenAIAPI --> ResponseParser
-    ClaudeAPI --> ResponseParser
-    
-    ResponseParser --> ScoreCalculator
-    ScoreCalculator --> PartialCredit
-    PartialCredit --> WeightedScoring
-    
-    WeightedScoring --> PersonalizedFeedback
-    MistakeDetector --> MistakeExplanation
-    PersonalizedFeedback --> ImprovementTips
-    ImprovementTips --> ResourceSuggestions
-    ResourceSuggestions --> ProgressTracking
-    
-    ProgressTracking --> PatternAnalyzer
-    PatternAnalyzer --> ClassInsights
-    ClassInsights --> StruggleIdentifier
-    StruggleIdentifier --> TrendAnalysis
-    TrendAnalysis --> ReportGenerator
-    
-    PersonalizedFeedback --> ResultCache
-    ProgressTracking --> HistoryDB
-    ContentAnalyzer --> EmbeddingDB
+    FeedbackGen --> PatternDetector
+    PatternDetector --> InsightsGen
 ```
 
 ---
@@ -783,7 +510,7 @@ graph TB
 |--------|----------|-------------|--------------|----------|
 | GET | `/api/courses` | List all courses | - | `{courses[]}` |
 | GET | `/api/courses/{id}` | Get course details | - | `{course}` |
-| POST | `/api/courses` | Create course | `{name, code, description}` | `{course}` |
+| POST | `/api/courses` | Create course | `{name, description}` | `{course}` |
 | PUT | `/api/courses/{id}` | Update course | `{name, description}` | `{course}` |
 | DELETE | `/api/courses/{id}` | Delete course | - | `{success}` |
 | POST | `/api/courses/{id}/enroll` | Enroll in course | `{code}` | `{enrollment}` |
@@ -813,164 +540,59 @@ graph TB
 
 # Additional Diagrams
 
-## Database Schema
-
-```mermaid
-erDiagram
-    User ||--o{ CourseEnrollment : enrolls
-    User ||--o{ Assignment : creates
-    User ||--o{ Submission : submits
-    User ||--o{ Notification : receives
-    User ||--o{ Message : sends
-    
-    Course ||--o{ CourseEnrollment : has
-    Course ||--o{ Assignment : contains
-    Course ||--o{ Material : contains
-    Course ||--o{ Announcement : has
-    Course ||--o{ Folder : organizes
-    
-    Assignment ||--o{ Submission : receives
-    Submission ||--|| Grade : has
-    Grade ||--|| Feedback : generates
-    
-    Conversation ||--o{ Message : contains
-    Conversation ||--o{ ConversationMember : has
-    
-    User {
-        string id PK
-        string email UK
-        string password
-        string role
-        string firstName
-        string lastName
-        datetime createdAt
-    }
-    
-    Course {
-        string id PK
-        string name
-        string code UK
-        string teacherId FK
-        string description
-        datetime createdAt
-    }
-    
-    Assignment {
-        string id PK
-        string courseId FK
-        string title
-        string description
-        datetime dueDate
-        string rubric
-    }
-    
-    Submission {
-        string id PK
-        string assignmentId FK
-        string studentId FK
-        string[] fileUrls
-        string text
-        datetime submittedAt
-    }
-    
-    Grade {
-        string id PK
-        string submissionId FK
-        float score
-        json breakdown
-        datetime gradedAt
-    }
-    
-    Feedback {
-        string id PK
-        string gradeId FK
-        text personalizedFeedback
-        json mistakes
-        json improvements
-        json suggestions
-    }
-```
-
 ## Deployment Architecture
 
 ```mermaid
 graph TB
-    subgraph "Production Environment"
-        subgraph "DMZ"
-            CF[CloudFlare<br/>DDoS Protection]
-            LB[Load Balancer<br/>Nginx]
-        end
-        
-        subgraph "Application Tier"
-            subgraph "Frontend Cluster"
-                FE1[Frontend Pod 1]
-                FE2[Frontend Pod 2]
-                FE3[Frontend Pod 3]
-            end
-            
-            subgraph "Backend Cluster"
-                BE1[Backend Pod 1]
-                BE2[Backend Pod 2]
-                BE3[Backend Pod 3]
-            end
-            
-            subgraph "AI Service Cluster"
-                AI1[AI Service Pod 1]
-                AI2[AI Service Pod 2]
-            end
-        end
-        
-        subgraph "Data Tier"
-            subgraph "Database Cluster"
-                PG_Primary[(PostgreSQL<br/>Primary)]
-                PG_Replica[(PostgreSQL<br/>Replica)]
-                Mongo_Primary[(MongoDB<br/>Primary)]
-                Mongo_Secondary[(MongoDB<br/>Secondary)]
-            end
-            
-            subgraph "Cache Cluster"
-                Redis1[(Redis Master)]
-                Redis2[(Redis Slave)]
-            end
-            
-            subgraph "Storage"
-                S3[S3/MinIO<br/>Object Storage]
-            end
-        end
-        
-        subgraph "Monitoring"
-            Prom[Prometheus]
-            Graf[Grafana]
-            ELK[ELK Stack]
-        end
+    subgraph "Internet"
+        Users[Users]
+        CloudFlare[CloudFlare CDN<br/>• DDoS Protection<br/>• Global Cache]
     end
     
-    CF --> LB
-    LB --> FE1
-    LB --> FE2
-    LB --> FE3
+    subgraph "Load Balancing"
+        Nginx[Nginx LB<br/>• SSL Termination<br/>• Request Routing]
+    end
     
-    FE1 --> BE1
-    FE2 --> BE2
-    FE3 --> BE3
+    subgraph "Application Servers"
+        Frontend[Frontend Pods<br/>Next.js x3]
+        Backend[Backend Pods<br/>NestJS x3]
+        AIServices[AI Service Pods<br/>FastAPI x2]
+    end
     
-    BE1 --> AI1
-    BE2 --> AI2
+    subgraph "Databases"
+        PGCluster[PostgreSQL<br/>• Primary<br/>• Replica]
+        MongoCluster[MongoDB<br/>• Replica Set]
+        RedisCluster[Redis<br/>• Master-Slave]
+    end
     
-    BE1 --> PG_Primary
-    BE2 --> PG_Replica
-    BE3 --> Mongo_Primary
+    subgraph "Storage & Queue"
+        MinIO[MinIO<br/>Object Storage]
+        RabbitMQ[RabbitMQ<br/>Message Queue]
+    end
     
-    AI1 --> Redis1
-    AI2 --> Redis2
+    subgraph "Monitoring"
+        Prometheus[Prometheus<br/>Metrics]
+        Grafana[Grafana<br/>Dashboards]
+        Logs[ELK Stack<br/>Logging]
+    end
     
-    BE1 --> S3
-    AI1 --> S3
+    Users --> CloudFlare
+    CloudFlare --> Nginx
+    Nginx --> Frontend
+    Nginx --> Backend
+    Backend --> AIServices
     
-    BE1 --> Prom
-    AI1 --> Prom
-    Prom --> Graf
-    BE1 --> ELK
+    Backend --> PGCluster
+    Backend --> MongoCluster
+    Backend --> RedisCluster
+    
+    AIServices --> MinIO
+    Backend --> RabbitMQ
+    
+    Backend --> Prometheus
+    AIServices --> Prometheus
+    Prometheus --> Grafana
+    Backend --> Logs
 ```
 
 ## User Journey Map
@@ -978,131 +600,121 @@ graph TB
 ```mermaid
 graph LR
     subgraph "Student Journey"
-        S_Start[Visit Platform] --> S_Reg[Register/Login]
-        S_Reg --> S_Browse[Browse Courses]
-        S_Browse --> S_Enroll[Enroll in Course]
-        S_Enroll --> S_View[View Materials]
-        S_View --> S_Assign[Check Assignments]
-        S_Assign --> S_Work[Complete Work]
-        S_Work --> S_Submit[Submit Assignment]
-        S_Submit --> S_Wait[Wait for Grading]
-        S_Wait --> S_Feedback[Receive Feedback]
-        S_Feedback --> S_Improve[Study Feedback]
-        S_Improve --> S_Progress[Track Progress]
+        S1[Land on Site] --> S2[Register/Login]
+        S2 --> S3[Browse Courses]
+        S3 --> S4[Join Course]
+        S4 --> S5[View Materials]
+        S5 --> S6[Check Assignment]
+        S6 --> S7[Complete Work]
+        S7 --> S8[Upload Submission]
+        S8 --> S9[AI Grading]
+        S9 --> S10[Receive Feedback]
+        S10 --> S11[Review Mistakes]
+        S11 --> S12[Improve]
     end
     
     subgraph "Teacher Journey"
-        T_Start[Visit Platform] --> T_Login[Login]
-        T_Login --> T_Create[Create Course]
-        T_Create --> T_Invite[Invite Students]
-        T_Invite --> T_Upload[Upload Materials]
-        T_Upload --> T_Assign[Create Assignments]
-        T_Assign --> T_Monitor[Monitor Submissions]
-        T_Monitor --> T_Review[Review AI Grading]
-        T_Review --> T_Insights[View Class Insights]
-        T_Insights --> T_Intervene[Provide Support]
+        T1[Login] --> T2[Create Course]
+        T2 --> T3[Upload Materials]
+        T3 --> T4[Create Assignment]
+        T4 --> T5[Set Rubric]
+        T5 --> T6[Monitor Submissions]
+        T6 --> T7[View AI Grades]
+        T7 --> T8[Check Insights]
+        T8 --> T9[Identify Struggles]
+        T9 --> T10[Provide Support]
     end
     
-    subgraph "AI Processing"
-        AI_Receive[Receive Submission] --> AI_OCR[Extract Text]
-        AI_OCR --> AI_Analyze[Analyze Content]
-        AI_Analyze --> AI_Grade[Apply Rubric]
-        AI_Grade --> AI_Feedback[Generate Feedback]
-        AI_Feedback --> AI_Personalize[Personalize Response]
-        AI_Personalize --> AI_Deliver[Deliver Results]
-    end
-    
-    S_Submit -.-> AI_Receive
-    AI_Deliver -.-> S_Feedback
-    T_Monitor -.-> AI_Deliver
+    S8 -.-> T6
+    T7 -.-> S10
 ```
 
 ## State Diagram - Assignment Lifecycle
 
 ```mermaid
 stateDiagram-v2
-    [*] --> Draft: Teacher Creates
-    Draft --> Published: Publish
-    Published --> Active: Due Date Approaching
+    [*] --> Draft: Create
+    
+    Draft --> Scheduled: Schedule
+    Draft --> Published: Publish Now
+    
+    Scheduled --> Published: Time Reached
+    
+    Published --> Active: Available
     
     Active --> Submitted: Student Submits
-    Submitted --> Processing: AI Grading Starts
-    Processing --> Graded: Grading Complete
+    Active --> Late: Past Due
     
-    Graded --> Reviewed: Teacher Reviews
-    Reviewed --> Final: Approve Grade
+    Submitted --> Processing: Start Grading
+    Late --> Submitted: Late Submit
     
-    Active --> Late: Past Due Date
-    Late --> Submitted: Late Submission
+    Processing --> OCR: Extract Text
+    OCR --> Grading: Analyze
+    Grading --> Generating: Create Feedback
+    Generating --> Graded: Complete
     
-    Published --> Cancelled: Cancel Assignment
-    Active --> Extended: Extend Deadline
-    Extended --> Active: Continue
+    Graded --> Reviewed: Teacher Review
+    Reviewed --> Final: Approve
+    Reviewed --> Regraded: Request Regrade
     
-    Final --> [*]: Complete
-    Cancelled --> [*]: End
+    Regraded --> Processing: Reprocess
     
-    state Processing {
-        [*] --> OCR: Extract Text
-        OCR --> Grading: Process Content
-        Grading --> Feedback: Generate Feedback
-        Feedback --> Saving: Save Results
-        Saving --> [*]
-    }
+    Final --> Archived: Archive
+    Archived --> [*]
+    
+    Published --> Cancelled: Cancel
+    Cancelled --> [*]
 ```
 
 ## Security Architecture
 
 ```mermaid
 graph TB
-    subgraph "Security Layers"
-        subgraph "Network Security"
-            FW[Firewall]
-            WAF[Web Application Firewall]
-            DDoS[DDoS Protection]
-            SSL[SSL/TLS Encryption]
-        end
-        
-        subgraph "Application Security"
-            Auth[Authentication<br/>JWT]
-            AuthZ[Authorization<br/>RBAC]
-            Validation[Input Validation]
-            Sanitization[Output Sanitization]
-            RateLimit[Rate Limiting]
-        end
-        
-        subgraph "Data Security"
-            Encryption[Encryption at Rest]
-            Transit[Encryption in Transit]
-            Backup[Secure Backups]
-            Audit[Audit Logs]
-        end
-        
-        subgraph "Monitoring"
-            IDS[Intrusion Detection]
-            SIEM[SIEM System]
-            Alerts[Security Alerts]
-        end
+    subgraph "Perimeter Security"
+        CloudFlare[CloudFlare<br/>• DDoS Protection<br/>• WAF Rules]
+        Firewall[Firewall<br/>• IP Whitelist<br/>• Port Control]
     end
     
-    Internet --> FW
-    FW --> WAF
-    WAF --> DDoS
-    DDoS --> SSL
+    subgraph "Application Security"
+        HTTPS[HTTPS/TLS<br/>• SSL Certificates<br/>• Encryption]
+        Auth[Authentication<br/>• JWT Tokens<br/>• MFA Support]
+        RBAC[Authorization<br/>• Role-Based<br/>• Permissions]
+        Validation[Validation<br/>• Input Sanitization<br/>• XSS Prevention]
+    end
     
-    SSL --> Auth
-    Auth --> AuthZ
-    AuthZ --> Validation
-    Validation --> Sanitization
+    subgraph "API Security"
+        RateLimit[Rate Limiting<br/>• Per User<br/>• Per IP]
+        CORS[CORS Policy<br/>• Origin Control]
+        APIKeys[API Keys<br/>• Service Auth]
+    end
     
-    Sanitization --> Encryption
-    Encryption --> Transit
-    Transit --> Backup
+    subgraph "Data Security"
+        Encryption[Encryption<br/>• At Rest<br/>• In Transit]
+        Hashing[Hashing<br/>• Bcrypt<br/>• Salted]
+        Backup[Backups<br/>• Daily<br/>• Encrypted]
+    end
+    
+    subgraph "Monitoring"
+        Audit[Audit Logs<br/>• All Actions<br/>• Immutable]
+        SIEM[SIEM<br/>• Threat Detection<br/>• Alerts]
+    end
+    
+    CloudFlare --> Firewall
+    Firewall --> HTTPS
+    HTTPS --> Auth
+    Auth --> RBAC
+    RBAC --> Validation
+    
+    Validation --> RateLimit
+    RateLimit --> CORS
+    CORS --> APIKeys
+    
+    APIKeys --> Encryption
+    Encryption --> Hashing
+    Hashing --> Backup
+    
     Backup --> Audit
-    
-    Audit --> IDS
-    IDS --> SIEM
-    SIEM --> Alerts
+    Audit --> SIEM
 ```
 
 ---
