@@ -18,7 +18,7 @@
 ## 1. Project Overview
 
 ### 1.1 Purpose
-Co-Learn is a production-grade learning management system designed specifically for Egyptian high school students (Thanaweya Amma), combining Google Classroom functionality with advanced AI-powered grading and personalized feedback systems.
+Co-Learn is a learning management system with an advanced AI-powered (assignment, quizes, papers, etc) grading and personalized feedback systems. Many more AI-powered features to be added soon.
 
 ### 1.2 Scope
 This MVP includes:
@@ -28,9 +28,8 @@ This MVP includes:
 - Comprehensive analytics dashboard
 
 ### 1.3 Stakeholders
-- **Students**: High school students in Egypt
-- **Teachers**: Educators managing courses and grading
-- **Parents**: Monitoring student progress
+- **Students**: High school and University students
+- **Teachers & Proefssors**: Educators managing courses and grading
 - **Administrators**: System management and oversight
 
 ## 2. Functional Requirements
@@ -44,7 +43,7 @@ This MVP includes:
 
 ### 2.2 Course Management
 - **FR-COURSE-001**: Teachers shall create, update, and archive courses
-- **FR-COURSE-002**: Students shall join courses via invitation code
+- **FR-COURSE-002**: Students shall join courses via invitation link
 - **FR-COURSE-003**: System shall display courses in card/list view
 - **FR-COURSE-004**: System shall support course member management
 
@@ -81,7 +80,7 @@ This MVP includes:
 
 ### 2.8 Calendar Integration
 - **FR-CAL-001**: System shall display assignment due dates
-- **FR-CAL-002**: System shall integrate with Google Calendar
+- **FR-CAL-002**: System shall integrate with a simple, clean Calendar
 - **FR-CAL-003**: System shall provide month/week/day views
 - **FR-CAL-004**: System shall export calendar events
 
@@ -102,7 +101,7 @@ This MVP includes:
 ### 3.1 Performance
 - **NFR-PERF-001**: Page load time shall be < 2 seconds
 - **NFR-PERF-002**: API response time shall be < 500ms
-- **NFR-PERF-003**: AI grading shall complete within 30 seconds
+- **NFR-PERF-003**: AI grading shall complete within 60 seconds
 - **NFR-PERF-004**: System shall support 10,000 concurrent users
 
 ### 3.2 Security
@@ -140,7 +139,6 @@ graph TB
     subgraph "Users"
         Student[Students]
         Teacher[Teachers]
-        Parent[Parents]
     end
     
     subgraph "System"
@@ -152,7 +150,6 @@ graph TB
     
     Student --> Web
     Teacher --> Web
-    Parent --> Web
     Web --> API
     API --> AI
     API --> DB
@@ -172,7 +169,7 @@ graph TB
     end
     
     subgraph "Frontend"
-        NextJS[Next.js 14<br/>• App Router<br/>• Server Components]
+        NextJS[Next.js<br/>• App Router<br/>• Server Components]
         UI[UI Layer<br/>• TailwindCSS<br/>• Shadcn/ui]
     end
     
@@ -194,7 +191,7 @@ graph TB
         Postgres[(PostgreSQL<br/>Users, Courses)]
         MongoDB[(MongoDB<br/>Materials)]
         Redis[(Redis<br/>Cache, Queue)]
-        MinIO[MinIO<br/>File Storage]
+        S3[S3<br/>File Storage]
     end
     
     Browser --> CloudFlare
@@ -216,7 +213,7 @@ graph TB
     CourseService --> Postgres
     CourseService --> MongoDB
     NotifyService --> Redis
-    OCRService --> MinIO
+    OCRService --> S3
     GradeService --> Redis
 ```
 
@@ -400,7 +397,7 @@ graph TB
         Primary[(PostgreSQL<br/>Transactional)]
         Document[(MongoDB<br/>Content)]
         Cache[(Redis<br/>Temporary)]
-        Files[MinIO<br/>Objects]
+        Files[S3<br/>Objects]
     end
     
     subgraph "Output Channels"
@@ -566,7 +563,7 @@ graph TB
     end
     
     subgraph "Storage & Queue"
-        MinIO[MinIO<br/>Object Storage]
+        S3[S3<br/>Object Storage]
         RabbitMQ[RabbitMQ<br/>Message Queue]
     end
     
@@ -586,7 +583,7 @@ graph TB
     Backend --> MongoCluster
     Backend --> RedisCluster
     
-    AIServices --> MinIO
+    AIServices --> S3
     Backend --> RabbitMQ
     
     Backend --> Prometheus
