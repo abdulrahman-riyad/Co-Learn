@@ -1,12 +1,19 @@
 import "dotenv/config"
 import prisma from "../config/client"
-import { SUCCESS, BAD_REQUEST, CREATED, ProtectedRequest, UNAUTHORIZED } from "../types/constants"
+import { SUCCESS, BAD_REQUEST, CREATED, UNAUTHORIZED } from "../types/constants"
+import { ProtectedRequest } from "../types/types"
 import {Request, Response } from "express"
 import bcrypt from "bcrypt"
 
 export const GetAllUsers = async function (req: Request, res: Response) {
-    const users = await prisma.user.findMany()
-    res.json({"data": users})
+    try {
+        const users = await prisma.user.findMany();
+        res.status(SUCCESS).json({"data": users});
+    } catch (e) {
+        res.status(BAD_REQUEST).json({
+            "Error message": e
+        });
+    }
 }
 
 export const GetUserById = async function (req: Request, res: Response){
@@ -56,16 +63,14 @@ export const GetCurrentUser = async function (req: ProtectedRequest, res: Respon
 export const CreateUser = async function (req: Request, res: Response){
     const userData = req.body;
     try {
-        const hashSecret = process.env.PASSWORD_HASH_SECRET;
-        if (!hashSecret) {
-            throw new Error("PASSWORD_HASH_SECRET environment variable is not set.");
-        }
+        const saltRounds = 10;
+        const salt = await bcrypt.genSalt(saltRounds);
 
         if (!userData.password){
             throw new Error("Password is not found in the request data")
         }
 
-        const hashedPassword = await bcrypt.hash(userData.password, hashSecret);
+        const hashedPassword = await bcrypt.hash(userData.password, salt);
         const user = await prisma.user.create({
             data: {
                 firstName: userData.firstName,
@@ -77,6 +82,7 @@ export const CreateUser = async function (req: Request, res: Response){
         });
         res.status(CREATED).json({"data": user});
     } catch (e) {
+        console.log(e);
         res.status(BAD_REQUEST).json({
             "Error message": e
         });
