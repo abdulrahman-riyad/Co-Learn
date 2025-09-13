@@ -3,6 +3,7 @@ import { SUCCESS, BAD_REQUEST, CREATED, UNAUTHORIZED, CONFLICT, NOT_FOUND } from
 import { ProtectedRequest } from "../../types/types.js"
 import {Request, Response } from "express"
 import bcrypt from "bcrypt"
+import { PrismaClientKnownRequestError } from "@prisma/client/runtime/library"
 
 export const GetAllUsers = async function (req: Request, res: Response) {
     try {
@@ -145,8 +146,8 @@ export const DeleteUserById = async function (req: Request, res: Response){
             where: { id: userId }
         }).then(() => {
             res.status(SUCCESS).json({"message": "User deleted successfully"});
-        }).catch((error) => {
-            res.status(BAD_REQUEST).json({"data": "bad reqeust"})
+        }).catch((error: PrismaClientKnownRequestError) => {
+            res.status(NOT_FOUND).json({"Error message": error.meta?.cause})
         })
     } catch (e) {
         res.status(BAD_REQUEST).json({

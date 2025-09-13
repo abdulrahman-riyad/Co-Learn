@@ -208,4 +208,14 @@ describe("User APIs and CRUD Operations tests", function () {
     const response = await axios.delete(`${baseURL}${userId}`);
     chai.expect(response).to.have.status(200);
   });
+
+  it("DELETE /api/v1/users/:id, Deleting a user not found on the database", async function (){
+    const response = await axios.delete(`${baseURL}no-such-id-exist`,
+      {
+        validateStatus: () => true
+      }
+    );
+    chai.expect(response).to.have.status(404)
+    chai.expect(response.data).to.have.property("Error message", "No record was found for a delete.")
+  })
 });
