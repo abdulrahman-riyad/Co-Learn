@@ -7,9 +7,10 @@
     "test": "tests"
   },
   "scripts": {
-    "test": "NODE_ENV=test mocha tests/**/*.spec.ts",
+    "pgt": "dotenv -e .env.test npx prisma generate",
+    "test": "dotenv -e .env.test mocha tests/**/*.spec.ts",
     "dev": "nodemon app.ts",
-    "dev-test": "NODE_ENV=test nodemon app.ts"
+    "dev-test": "dotenv -e .env.test nodemon app.ts"
   },
   "author": "",
   "license": "ISC",
@@ -29,7 +30,6 @@
     "ts-node": "^10.9.2"
   },
   "devDependencies": {
-    "@playwright/test": "^1.55.0",
     "@types/bcrypt": "^6.0.0",
     "@types/chai": "^5.2.2",
     "@types/cors": "^2.8.19",
@@ -43,6 +43,7 @@
     "morgan": "^1.10.1",
     "prisma": "^6.15.0",
     "ts-mocha": "^11.1.0",
+    "tsconfig-paths": "^4.2.0",
     "tsx": "^4.20.5"
   }
 }
