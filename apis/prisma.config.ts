@@ -10,6 +10,8 @@ const envFile =
 
 dotenv.config({ path: envFile });
 
+console.log("DB URL in use:", process.env.DATABASE_URL);
+
 export default {
   schema: path.join("prisma"),
 } satisfies PrismaConfig;
