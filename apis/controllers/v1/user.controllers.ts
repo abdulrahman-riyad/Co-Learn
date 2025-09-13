@@ -1,5 +1,5 @@
 import prisma from "../../config/client.js"
-import { SUCCESS, BAD_REQUEST, CREATED, UNAUTHORIZED, CONFLICT } from "../../types/constants.js"
+import { SUCCESS, BAD_REQUEST, CREATED, UNAUTHORIZED, CONFLICT, NOT_FOUND } from "../../types/constants.js"
 import { ProtectedRequest } from "../../types/types.js"
 import {Request, Response } from "express"
 import bcrypt from "bcrypt"
@@ -32,7 +32,7 @@ export const GetUserById = async function (req: Request, res: Response){
         });
 
         if (!user) {
-            return res.status(BAD_REQUEST).json({"Error message": "User not found"});
+            return res.status(NOT_FOUND).json({"Error message": "User not found"});
         }
         res.status(SUCCESS).json({user});
     } catch (e) {
