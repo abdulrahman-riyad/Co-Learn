@@ -7,7 +7,7 @@ import { GetAllUsers,
     CreateUser,  
     UpdateUserById,
     DeleteUserById
-} from "../controllers/user.controllers";
+} from "../../controllers/v1/user.controllers.js";
 
 router.get("/", GetAllUsers);
 router.get("/:id", GetUserById);
