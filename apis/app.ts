@@ -12,6 +12,7 @@ app.use(bodyParser.urlencoded({ extended: true }))
 
 // version 1
 app.use('/api/v1/users', userRouterv1)
+/* TODO: folder routes */
 
 app.listen(process.env.SERVER_PORT || 3000, () => {
   console.log(`Server is running on port ${process.env.SERVER_PORT || 3000}`)

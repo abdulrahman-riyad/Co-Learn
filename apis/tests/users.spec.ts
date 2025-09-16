@@ -172,26 +172,25 @@ describe("User APIs and CRUD Operations tests", function () {
     });
 
     if (!users) chai.expect.fail("Users creation failed");
-    const response = await axios.get(baseURL)
-    chai.expect(response).to.have.status(SUCCESS)
-    chai.expect(response).to.have.nested.property("data.users")
-    chai.expect(response.data.users).length(4)
+    const response = await axios.get(baseURL);
+    chai.expect(response).to.have.status(SUCCESS);
+    chai.expect(response).to.have.nested.property("data.users");
+    chai.expect(response.data.users).length(4);
 
     const user = await db.user.create({
-      data: 
-      {
-          firstName: "ex4",
-          lastName: "es4",
-          email: "ex4@gmail.com",
-          password: "pass4"
-        }
+      data: {
+        firstName: "ex4",
+        lastName: "es4",
+        email: "ex4@gmail.com",
+        password: "pass4",
+      },
     });
 
     if (!user) chai.expect.fail("User creation failed");
-    const response2 = await axios.get(baseURL)
-    chai.expect(response2).to.have.status(SUCCESS)
-    chai.expect(response2).to.have.nested.property("data.users")
-    chai.expect(response2.data.users).length(5)
+    const response2 = await axios.get(baseURL);
+    chai.expect(response2).to.have.status(SUCCESS);
+    chai.expect(response2).to.have.nested.property("data.users");
+    chai.expect(response2.data.users).length(5);
   });
 
   it("DELETE /api/v1/users/:id, Deleting a user found on the database", async function () {
@@ -209,13 +208,13 @@ describe("User APIs and CRUD Operations tests", function () {
     chai.expect(response).to.have.status(200);
   });
 
-  it("DELETE /api/v1/users/:id, Deleting a user not found on the database", async function (){
-    const response = await axios.delete(`${baseURL}no-such-id-exist`,
-      {
-        validateStatus: () => true
-      }
-    );
-    chai.expect(response).to.have.status(404)
-    chai.expect(response.data).to.have.property("Error message", "No record was found for a delete.")
-  })
+  it("DELETE /api/v1/users/:id, Deleting a user not found on the database", async function () {
+    const response = await axios.delete(`${baseURL}no-such-id-exist`, {
+      validateStatus: () => true,
+    });
+    chai.expect(response).to.have.status(404);
+    chai
+      .expect(response.data)
+      .to.have.property("Error message", "No record was found for a delete.");
+  });
 });
