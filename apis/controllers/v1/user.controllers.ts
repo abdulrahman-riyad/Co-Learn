@@ -54,29 +54,10 @@ export const GetCurrentUser = async function (
   req: ProtectedRequest,
   res: Response
 ) {
-  const userId = req.user?.id;
   try {
-    if (!userId) {
-      return res
-        .status(UNAUTHORIZED)
-        .json({ "Error message": "Unauthorized, access denied" });
+    if (req.user){
+      res.status(SUCCESS).json({user: req.user})
     }
-
-    const user = await prisma.user.findUnique({
-      where: { id: userId },
-      omit: {
-        password: true,
-        createdAt: true,
-      },
-    });
-
-    if (!user) {
-      return res
-        .status(BAD_REQUEST)
-        .json({ "Error message": "User not found" });
-    }
-
-    res.status(SUCCESS).json({ user });
   } catch (e) {
     res.status(BAD_REQUEST).json({
       "Error message": e,
