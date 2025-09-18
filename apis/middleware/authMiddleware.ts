@@ -16,7 +16,6 @@ export default async function authMiddleWareAuthentciation(
     try {
       const token = req.headers.authorization.split(" ")[1];
       const secret = process.env.JWT_ACCESS_SECRET;
-
       if (!secret)
         return res
           .status(SERVER_ERROR)
