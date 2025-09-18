@@ -1,6 +1,4 @@
-// Path: co-learn/apis/prisma/models/classroom.prisma
 // Role: Defines the Classroom database table structure
-// This model represents courses/classes in the system
 
 model Classroom {
   id            String   @id @default(uuid())
@@ -15,7 +13,7 @@ model Classroom {
   updatedAt     DateTime @updatedAt @map("updated_at")
   
   // Relations
-  owner          User     @relation("owner", fields: [ownerId], references: [id])
+  owner          User     @relation(fields: [ownerId], references: [id])
   
   usersFoldersClassrooms UsersFoldersClassrooms[]
   feedItems              FeedItem[]
@@ -104,40 +102,4 @@ model Invitation {
   
   @@index([classroomId])
   @@map("invitations")
-}
-
-model Role {
-  id          Int      @id @default(autoincrement())
-  name        String   @unique
-  description String?
-  
-  // Relations
-  usersFoldersClassrooms UsersFoldersClassrooms[]
-  invitations            Invitation[]
-  rolesPermissions       RolesPermissions[]
-  
-  @@map("roles")
-}
-
-model Permission {
-  id          String   @id @default(uuid())
-  name        String   @unique
-  description String?
-  
-  // Relations
-  rolesPermissions RolesPermissions[]
-  
-  @@map("permissions")
-}
-
-model RolesPermissions {
-  roleId       Int    @map("role_id")
-  permissionId String @map("permission_id")
-  
-  // Relations
-  role       Role       @relation(fields: [roleId], references: [id])
-  permission Permission @relation(fields: [permissionId], references: [id])
-  
-  @@id([roleId, permissionId])
-  @@map("roles_permissions")
 }

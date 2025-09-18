@@ -1,6 +1,4 @@
-// Path: co-learn/apis/tests/classrooms/classrooms.spec.ts
 // Role: Test suite for classroom API endpoints
-// Fixed: Using camelCase for Prisma models to match controllers
 
 import { expect } from 'chai';
 import { PrismaClient } from '@prisma/client';
@@ -35,8 +33,8 @@ describe('Classroom API Tests', () => {
     const hashedPassword = await bcrypt.hash('testpassword123', 10);
     const user = await prisma.user.create({
       data: {
-        firstname: 'Teacher',
-        lastname: 'Test',
+        firstName: 'Teacher',
+        lastName: 'Test',
         email: `teacher${Date.now()}@colearn.com`,
         password: hashedPassword,
         picture: null
@@ -47,8 +45,8 @@ describe('Classroom API Tests', () => {
     // Create test folder
     const folder = await prisma.folder.create({
       data: {
-        user_id: testUserId,
-        parent_id: null,
+        userId: testUserId,
+        parentId: null,
         name: 'Test Courses',
         color: '#3b82f6'
       }
@@ -59,13 +57,13 @@ describe('Classroom API Tests', () => {
   after(async () => {
     // Cleanup - use camelCase to match Prisma generated models
     await prisma.usersFoldersClassrooms.deleteMany({
-      where: { user_id: testUserId }
+      where: { userId: testUserId }
     });
     await prisma.classroom.deleteMany({
-      where: { owner_id: testUserId }
+      where: { ownerId: testUserId }
     });
     await prisma.folder.deleteMany({
-      where: { user_id: testUserId }
+      where: { userId: testUserId }
     });
     await prisma.user.delete({
       where: { id: testUserId }
@@ -76,17 +74,17 @@ describe('Classroom API Tests', () => {
   it('should create a classroom', async () => {
     const classroom = await prisma.classroom.create({
       data: {
-        classroom_name: 'Mathematics 101',
+        classroomName: 'Mathematics 101',
         description: 'Introduction to Calculus',
-        owner_id: testUserId,
+        ownerId: testUserId,
         tags: ['math', 'calculus'],
         isPrivate: false
       }
     });
 
     expect(classroom).to.have.property('id');
-    expect(classroom.classroom_name).to.equal('Mathematics 101');
-    expect(classroom.owner_id).to.equal(testUserId);
+    expect(classroom.classroomName).to.equal('Mathematics 101');
+    expect(classroom.ownerId).to.equal(testUserId);
     testClassroomId = classroom.id;
   });
 
@@ -94,15 +92,15 @@ describe('Classroom API Tests', () => {
     // Use camelCase to match Prisma generated models
     const enrollment = await prisma.usersFoldersClassrooms.create({
       data: {
-        user_id: testUserId,
-        folder_id: testFolderId,
-        classroom_id: testClassroomId,
-        role_id: teacherRoleId
+        userId: testUserId,
+        folderId: testFolderId,
+        classroomId: testClassroomId,
+        roleId: teacherRoleId
       }
     });
 
-    expect(enrollment.user_id).to.equal(testUserId);
-    expect(enrollment.classroom_id).to.equal(testClassroomId);
+    expect(enrollment.userId).to.equal(testUserId);
+    expect(enrollment.classroomId).to.equal(testClassroomId);
   });
 
   it('should get classroom by ID', async () => {

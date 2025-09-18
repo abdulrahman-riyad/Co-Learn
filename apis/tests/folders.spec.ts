@@ -1,6 +1,4 @@
-// // Path: co-learn/apis/tests/folders/folders.spec.ts
-// // Role: Test suite for folder API endpoints using Mocha/Chai
-// // This follows your existing test structure
+// Role: Test suite for folder API endpoints using Mocha/Chai
 
 import { expect } from 'chai';
 import { PrismaClient } from '@prisma/client';
@@ -17,8 +15,8 @@ describe('Folder API Tests', () => {
     const hashedPassword = await bcrypt.hash('testpassword123', 10); // Hash password
     const user = await prisma.user.create({
       data: {
-        firstname: 'Test',
-        lastname: 'User',
+        firstName: 'Test',
+        lastName: 'User',
         email: `test${Date.now()}@colearn.com`,
         picture: null,
         password: hashedPassword // Include required password field
@@ -30,7 +28,7 @@ describe('Folder API Tests', () => {
   after(async () => {
     // Cleanup: Delete test data
     await prisma.folder.deleteMany({
-      where: { user_id: testUserId }
+      where: { userId: testUserId }
     });
     await prisma.user.delete({
       where: { id: testUserId }
@@ -41,8 +39,8 @@ describe('Folder API Tests', () => {
   it('should create a root folder', async () => {
     const folder = await prisma.folder.create({
       data: {
-        user_id: testUserId,
-        parent_id: null,
+        userId: testUserId,
+        parentId: null,
         name: 'Root',
         color: '#3b82f6'
       }
@@ -50,27 +48,27 @@ describe('Folder API Tests', () => {
     
     expect(folder).to.have.property('id');
     expect(folder.name).to.equal('Root');
-    expect(folder.parent_id).to.be.null;
+    expect(folder.parentId).to.be.null;
     rootFolderId = folder.id;
   });
 
   it('should create a subfolder', async () => {
     const subfolder = await prisma.folder.create({
       data: {
-        user_id: testUserId,
-        parent_id: rootFolderId,
+        userId: testUserId,
+        parentId: rootFolderId,
         name: 'Mathematics',
         color: '#10b981'
       }
     });
     
-    expect(subfolder.parent_id).to.equal(rootFolderId);
+    expect(subfolder.parentId).to.equal(rootFolderId);
     expect(subfolder.name).to.equal('Mathematics');
   });
 
   it('should get all folders for a user', async () => {
     const folders = await prisma.folder.findMany({
-      where: { user_id: testUserId }
+      where: { userId: testUserId }
     });
     
     expect(folders).to.be.an('array');

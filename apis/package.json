@@ -1,0 +1,49 @@
+{
+    "name": "colearn-apis",
+    "version": "1.0.0",
+    "main": "app.js",
+    "type": "module",
+    "directories": {
+      "test": "tests"
+    },
+    "scripts": {
+      "pgt": "dotenv -e .env.test npx prisma generate",
+      "test": "dotenv -e .env.test mocha tests/**/*.spec.ts",
+      "dev": "nodemon app.ts",
+      "dev-test": "dotenv -e .env.test nodemon app.ts"
+    },
+    "author": "",
+    "license": "ISC",
+    "description": "",
+    "dependencies": {
+      "@prisma/adapter-pg": "^6.15.0",
+      "@prisma/client": "^6.15.0",
+      "axios": "^1.12.0",
+      "bcrypt": "^6.0.0",
+      "chai-http": "^5.1.2",
+      "cookie-parser": "^1.4.7",
+      "cors": "^2.8.5",
+      "dotenv": "^17.2.2",
+      "express": "^5.1.0",
+      "nodeman": "^1.1.2",
+      "nodemon": "^3.1.10",
+      "ts-node": "^10.9.2"
+    },
+    "devDependencies": {
+      "@types/bcrypt": "^6.0.0",
+      "@types/chai": "^5.2.2",
+      "@types/cors": "^2.8.19",
+      "@types/expect": "^1.20.4",
+      "@types/express": "^5.0.3",
+      "@types/mocha": "^10.0.10",
+      "@types/morgan": "^1.9.10",
+      "@types/node": "^24.3.1",
+      "chai": "^6.0.1",
+      "mocha": "^11.7.2",
+      "morgan": "^1.10.1",
+      "prisma": "^6.16.1",
+      "ts-mocha": "^11.1.0",
+      "tsconfig-paths": "^4.2.0",
+      "tsx": "^4.20.5"
+    }
+  }

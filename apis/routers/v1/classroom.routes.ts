@@ -1,11 +1,9 @@
-// Path: co-learn/apis/routers/classroom.routes.ts
 // Role: Defines all classroom API endpoints and maps them to controller functions
-// This file sets up the URL structure for classroom operations
 
 import { Router } from 'express';
-import { ClassroomController } from '../controllers/classroom.controller';
-// Import your existing auth middleware
-const { authMiddleware } = require('../middleware/authMiddleware');
+import { ClassroomController } from '../../controllers/v1/classroom.controller.js';
+// Import your existing auth middleware 
+import { authMiddleware } from '../../middleware/authMiddleware.js';
 
 const router = Router();
 

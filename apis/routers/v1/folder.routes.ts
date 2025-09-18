@@ -1,11 +1,9 @@
-// Path: co-learn/apis/routers/folder.routes.ts
 // Role: Defines all folder-related API endpoints and their HTTP methods
-// This file maps URLs to controller functions and applies middleware
 
 import { Router } from 'express';
-import { FolderController } from '../controllers/folder.controller';
+import { FolderController } from '../../controllers/v1/folder.controller.js';
 // Assuming authMiddleware exists - you'll need to update it to TypeScript
-const { authMiddleware } = require('../middleware/authMiddleware');
+import { authMiddleware } from '../../middleware/authMiddleware.js';
 
 const router = Router();
 

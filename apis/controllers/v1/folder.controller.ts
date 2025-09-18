@@ -1,6 +1,4 @@
-// Path: co-learn/apis/controllers/folder.controller.ts
 // Role: Handles all folder-related business logic and database operations
-// This controller manages the folder hierarchy system where users organize their classrooms
 
 import { Request, Response } from 'express';
 import { PrismaClient } from '@prisma/client';
@@ -14,7 +12,7 @@ export class FolderController {
       const userId = (req as any).user?.id;
       
       const folders = await prisma.folder.findMany({
-        where: { user_id: userId }
+        where: { userId: userId }
       });
 
       res.json({ success: true, data: folders });
@@ -33,7 +31,7 @@ export class FolderController {
       const userId = (req as any).user?.id;
 
       const folder = await prisma.folder.findFirst({
-        where: { id, user_id: userId }
+        where: { id, userId: userId }
       });
 
       if (!folder) {
@@ -59,8 +57,8 @@ export class FolderController {
 
       let rootFolder = await prisma.folder.findFirst({
         where: { 
-          user_id: userId, 
-          parent_id: null 
+          userId: userId, 
+          parentId: null 
         }
       });
 
@@ -68,8 +66,8 @@ export class FolderController {
       if (!rootFolder) {
         rootFolder = await prisma.folder.create({
           data: {
-            user_id: userId,
-            parent_id: null,
+            userId: userId,
+            parentId: null,
             name: 'Root',
             color: '#3b82f6'
           }
@@ -85,7 +83,7 @@ export class FolderController {
     }
   }
 
-  // Get all items (subfolders and classrooms) in a folder
+  // Get all items (subfolders and classrooms) in the folder
   static async getDirectoryItems(req: Request, res: Response) {
     try {
       const { id } = req.params;
@@ -94,16 +92,16 @@ export class FolderController {
       // Get subfolders
       const folders = await prisma.folder.findMany({
         where: { 
-          parent_id: id, 
-          user_id: userId 
+          parentId: id, 
+          userId: userId 
         }
       });
 
-      // Get classrooms in this folder - using camelCase
+      // Get classrooms in this folder
       const classrooms = await prisma.usersFoldersClassrooms.findMany({
         where: { 
-          folder_id: id, 
-          user_id: userId 
+          folderId: id, 
+          userId: userId 
         },
         include: { 
           classroom: true 
@@ -133,8 +131,8 @@ export class FolderController {
 
       const classrooms = await prisma.usersFoldersClassrooms.findMany({
         where: { 
-          folder_id: id, 
-          user_id: userId 
+          folderId: id, 
+          userId: userId 
         },
         include: { 
           classroom: true 
@@ -161,8 +159,8 @@ export class FolderController {
 
       const folders = await prisma.folder.findMany({
         where: { 
-          parent_id: id, 
-          user_id: userId 
+          parentId: id, 
+          userId: userId 
         }
       });
 
@@ -181,18 +179,14 @@ export class FolderController {
       const userId = (req as any).user?.id;
       const { name, parentDirectory, color } = req.body;
 
-      if (!name) {
-        return res.status(400).json({ 
-          success: false, 
-          message: 'Folder name is required' 
-        });
-      }
+      // If name is missing, provide a sensible default to align with docs sample
+      const folderName = name && typeof name === 'string' && name.trim().length > 0 ? name.trim() : 'New Folder';
 
       const newFolder = await prisma.folder.create({
         data: {
-          user_id: userId,
-          parent_id: parentDirectory || null,
-          name,
+          userId: userId,
+          parentId: parentDirectory || null,
+          name: folderName,
           color: color || '#3b82f6'
         }
       });
@@ -218,7 +212,7 @@ export class FolderController {
 
       // Check if folder exists and belongs to user
       const folder = await prisma.folder.findFirst({
-        where: { id, user_id: userId }
+        where: { id, userId: userId }
       });
 
       if (!folder) {
@@ -233,7 +227,7 @@ export class FolderController {
         data: {
           ...(name && { name }),
           ...(color && { color }),
-          ...(parent_id !== undefined && { parent_id })
+          ...(parent_id !== undefined && { parentId: parent_id })
         }
       });
 
@@ -254,7 +248,7 @@ export class FolderController {
 
       // Check if folder exists and belongs to user
       const folder = await prisma.folder.findFirst({
-        where: { id, user_id: userId }
+        where: { id, userId: userId }
       });
 
       if (!folder) {
@@ -266,11 +260,11 @@ export class FolderController {
 
       // Check if folder has contents
       const hasSubfolders = await prisma.folder.count({
-        where: { parent_id: id }
+        where: { parentId: id }
       });
 
       const hasClassrooms = await prisma.usersFoldersClassrooms.count({
-        where: { folder_id: id }
+        where: { folderId: id }
       });
 
       if (hasSubfolders > 0 || hasClassrooms > 0) {

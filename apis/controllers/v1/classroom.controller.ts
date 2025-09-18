@@ -1,6 +1,4 @@
-// Path: co-learn/apis/controllers/classroom.controller.ts
 // Role: Handles all classroom-related business logic - creating, joining, managing classrooms
-// This is where teachers and students interact with course management
 
 import { Request, Response } from 'express';
 import { PrismaClient } from '@prisma/client';
@@ -17,8 +15,8 @@ export class ClassroomController {
           owner: {
             select: {
               id: true,
-              firstname: true,
-              lastname: true,
+              firstName: true,
+              lastName: true,
               email: true
             }
           }
@@ -50,15 +48,15 @@ export class ClassroomController {
           owner: {
             select: {
               id: true,
-              firstname: true,
-              lastname: true,
+              firstName: true,
+              lastName: true,
               email: true,
               picture: true
             }
           },
-          feed_items: {
+          feedItems: {
             take: 10,
-            orderBy: { created_at: 'desc' }
+            orderBy: { createdAt: 'desc' }
           }
         }
       });
@@ -74,12 +72,12 @@ export class ClassroomController {
       if (classroom.isPrivate) {
         const hasAccess = await prisma.usersFoldersClassrooms.findFirst({
           where: {
-            classroom_id: id,
-            user_id: userId
+            classroomId: id,
+            userId: userId
           }
         });
 
-        if (!hasAccess && classroom.owner_id !== userId) {
+        if (!hasAccess && classroom.ownerId !== userId) {
           return res.status(403).json({ 
             success: false, 
             message: 'Access denied to private classroom' 
@@ -102,15 +100,15 @@ export class ClassroomController {
       const userId = (req as any).user?.id;
 
       const enrollments = await prisma.usersFoldersClassrooms.findMany({
-        where: { user_id: userId },
+        where: { userId: userId },
         include: {
           classroom: {
             include: {
               owner: {
                 select: {
                   id: true,
-                  firstname: true,
-                  lastname: true
+                  firstName: true,
+                  lastName: true
                 }
               }
             }
@@ -122,7 +120,7 @@ export class ClassroomController {
       const classrooms = enrollments.map(e => ({
         ...e.classroom,
         role: e.role,
-        folder_id: e.folder_id
+        folderId: e.folderId
       }));
 
       res.json({ 
@@ -144,11 +142,11 @@ export class ClassroomController {
       const userId = (req as any).user?.id;
 
       const classrooms = await prisma.classroom.findMany({
-        where: { owner_id: userId },
+        where: { ownerId: userId },
         include: {
           _count: {
             select: {
-              users_folders_classrooms: true,
+              usersFoldersClassrooms: true,
               activities: true
             }
           }
@@ -197,9 +195,9 @@ export class ClassroomController {
       // Create classroom
       const classroom = await prisma.classroom.create({
         data: {
-          classroom_name: name,
+          classroomName: name,
           description: description || null,
-          owner_id: userId,
+          ownerId: userId,
           tags: tags || [],
           avatar: avatar || null,
           cover: cover || null,
@@ -214,8 +212,8 @@ export class ClassroomController {
       if (!folderId) {
         const rootFolder = await prisma.folder.findFirst({
           where: { 
-            user_id: userId, 
-            parent_id: null 
+            userId: userId, 
+            parentId: null 
           }
         });
 
@@ -224,8 +222,8 @@ export class ClassroomController {
         } else {
           const newRoot = await prisma.folder.create({
             data: {
-              user_id: userId,
-              parent_id: null,
+              userId: userId,
+              parentId: null,
               name: 'My Classrooms',
               color: '#3b82f6'
             }
@@ -237,10 +235,10 @@ export class ClassroomController {
       // Add to usersFoldersClassrooms (camelCase)
       await prisma.usersFoldersClassrooms.create({
         data: {
-          user_id: userId,
-          folder_id: folderId,
-          classroom_id: classroom.id,
-          role_id: teacherRole.id
+          userId: userId,
+          folderId: folderId,
+          classroomId: classroom.id,
+          roleId: teacherRole.id
         }
       });
 
@@ -263,7 +261,7 @@ export class ClassroomController {
     try {
       const userId = (req as any).user?.id;
       const { classroomId } = req.params;
-      const { parentFolder } = req.query;
+      const { parentFolder, uri, callback } = req.query as { parentFolder?: string, uri?: string, callback?: string };
 
       // Check if classroom exists
       const classroom = await prisma.classroom.findUnique({
@@ -280,8 +278,8 @@ export class ClassroomController {
       // Check if already enrolled
       const existing = await prisma.usersFoldersClassrooms.findFirst({
         where: {
-          user_id: userId,
-          classroom_id: classroomId
+          userId: userId,
+          classroomId: classroomId
         }
       });
 
@@ -309,8 +307,8 @@ export class ClassroomController {
       if (!folderId) {
         const rootFolder = await prisma.folder.findFirst({
           where: { 
-            user_id: userId, 
-            parent_id: null 
+            userId: userId, 
+            parentId: null 
           }
         });
 
@@ -319,8 +317,8 @@ export class ClassroomController {
         } else {
           const newRoot = await prisma.folder.create({
             data: {
-              user_id: userId,
-              parent_id: null,
+              userId: userId,
+              parentId: null,
               name: 'My Courses',
               color: '#10b981'
             }
@@ -332,17 +330,21 @@ export class ClassroomController {
       // Enroll user
       await prisma.usersFoldersClassrooms.create({
         data: {
-          user_id: userId,
-          folder_id: folderId,
-          classroom_id: classroomId,
-          role_id: studentRole.id
+          userId: userId,
+          folderId: folderId,
+          classroomId: classroomId,
+          roleId: studentRole.id
         }
       });
 
       res.json({ 
         success: true, 
         message: 'Successfully joined classroom',
-        data: classroom
+        data: classroom,
+        meta: {
+          invitationUri: uri || null,
+          callback: callback || null,
+        }
       });
     } catch (error) {
       res.status(500).json({ 
@@ -361,8 +363,8 @@ export class ClassroomController {
       // Check enrollment
       const enrollment = await prisma.usersFoldersClassrooms.findFirst({
         where: {
-          user_id: userId,
-          classroom_id: classroomId
+          userId: userId,
+          classroomId: classroomId
         }
       });
 
@@ -378,7 +380,7 @@ export class ClassroomController {
         where: { id: classroomId }
       });
 
-      if (classroom?.owner_id === userId) {
+      if (classroom?.ownerId === userId) {
         return res.status(400).json({ 
           success: false, 
           message: 'Owner cannot leave their own classroom. Delete it instead.' 
@@ -388,10 +390,10 @@ export class ClassroomController {
       // Remove enrollment
       await prisma.usersFoldersClassrooms.delete({
         where: {
-          user_id_folder_id_classroom_id: {
-            user_id: userId,
-            folder_id: enrollment.folder_id,
-            classroom_id: classroomId
+          userId_folderId_classroomId: {
+            userId: userId,
+            folderId: enrollment.folderId,
+            classroomId: classroomId
           }
         }
       });
@@ -427,7 +429,7 @@ export class ClassroomController {
         });
       }
 
-      if (classroom.owner_id !== userId) {
+      if (classroom.ownerId !== userId) {
         return res.status(403).json({ 
           success: false, 
           message: 'Only owner can update classroom' 
@@ -438,7 +440,7 @@ export class ClassroomController {
       const updated = await prisma.classroom.update({
         where: { id: classroomId },
         data: {
-          ...(name && { classroom_name: name }),
+          ...(name && { classroomName: name }),
           ...(description !== undefined && { description }),
           ...(tags && { tags }),
           ...(avatar !== undefined && { avatar }),
@@ -478,7 +480,7 @@ export class ClassroomController {
         });
       }
 
-      if (classroom.owner_id !== userId) {
+      if (classroom.ownerId !== userId) {
         return res.status(403).json({ 
           success: false, 
           message: 'Only owner can delete classroom' 

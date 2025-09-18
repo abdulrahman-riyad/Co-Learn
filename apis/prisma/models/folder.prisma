@@ -1,6 +1,4 @@
-// Path: co-learn/apis/prisma/models/folder.prisma  
 // Role: Defines the Folder database table structure
-// This model represents how folders are stored in PostgreSQL
 
 model Folder {
   id        String   @id @default(uuid())
