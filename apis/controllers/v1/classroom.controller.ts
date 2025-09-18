@@ -5,9 +5,8 @@ import { PrismaClient } from '@prisma/client';
 
 const prisma = new PrismaClient();
 
-export class ClassroomController {
-  // Get all public classrooms
-  static async getAllClassrooms(req: Request, res: Response) {
+// Get all public classrooms
+export const GetAllClassrooms = async function (req: Request, res: Response) {
     try {
       const classrooms = await prisma.classroom.findMany({
         where: { isPrivate: false },
@@ -36,8 +35,8 @@ export class ClassroomController {
     }
   }
 
-  // Get specific classroom by ID
-  static async getClassroomById(req: Request, res: Response) {
+// Get specific classroom by ID
+export const GetClassroomById = async function (req: Request, res: Response) {
     try {
       const { id } = req.params;
       const userId = (req as any).user?.id;
@@ -94,8 +93,8 @@ export class ClassroomController {
     }
   }
 
-  // Get all classrooms user is enrolled in
-  static async getUserClassrooms(req: Request, res: Response) {
+// Get all classrooms user is enrolled in
+export const GetUserClassrooms = async function (req: Request, res: Response) {
     try {
       const userId = (req as any).user?.id;
 
@@ -136,8 +135,8 @@ export class ClassroomController {
     }
   }
 
-  // Get classrooms created by the user
-  static async getCreatedClassrooms(req: Request, res: Response) {
+// Get classrooms created by the user
+export const GetCreatedClassrooms = async function (req: Request, res: Response) {
     try {
       const userId = (req as any).user?.id;
 
@@ -166,8 +165,8 @@ export class ClassroomController {
     }
   }
 
-  // Create a new classroom
-  static async createClassroom(req: Request, res: Response) {
+// Create a new classroom
+export const CreateClassroom = async function (req: Request, res: Response) {
     try {
       const userId = (req as any).user?.id;
       const { name, description, tags, avatar, cover, isPrivate } = req.body;
@@ -256,8 +255,8 @@ export class ClassroomController {
     }
   }
 
-  // Join a classroom
-  static async joinClassroom(req: Request, res: Response) {
+// Join a classroom
+export const JoinClassroom = async function (req: Request, res: Response) {
     try {
       const userId = (req as any).user?.id;
       const { classroomId } = req.params;
@@ -354,8 +353,8 @@ export class ClassroomController {
     }
   }
 
-  // Leave a classroom
-  static async unenrollFromClassroom(req: Request, res: Response) {
+// Leave a classroom
+export const UnenrollFromClassroom = async function (req: Request, res: Response) {
     try {
       const userId = (req as any).user?.id;
       const { classroomId } = req.params;
@@ -410,8 +409,8 @@ export class ClassroomController {
     }
   }
 
-  // Update classroom
-  static async updateClassroom(req: Request, res: Response) {
+// Update classroom
+export const UpdateClassroom = async function (req: Request, res: Response) {
     try {
       const userId = (req as any).user?.id;
       const { classroomId } = req.params;
@@ -462,8 +461,8 @@ export class ClassroomController {
     }
   }
 
-  // Delete classroom
-  static async deleteClassroom(req: Request, res: Response) {
+// Delete classroom
+export const DeleteClassroom = async function (req: Request, res: Response) {
     try {
       const userId = (req as any).user?.id;
       const { classroomId } = req.params;
@@ -503,4 +502,3 @@ export class ClassroomController {
       });
     }
   }
-}

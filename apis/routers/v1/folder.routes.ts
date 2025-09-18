@@ -1,7 +1,17 @@
 // Role: Defines all folder-related API endpoints and their HTTP methods
 
 import { Router } from 'express';
-import { FolderController } from '../../controllers/v1/folder.controller.js';
+import { 
+  GetAllDirectories,
+  GetRootFolder,
+  GetFolderById,
+  GetDirectoryItems,
+  GetDirectoryClassrooms,
+  GetChildDirectories,
+  CreateDirectory,
+  UpdateFolder,
+  DeleteDirectory
+} from '../../controllers/v1/folder.controller.js';
 // Assuming authMiddleware exists - you'll need to update it to TypeScript
 import { authMiddleware } from '../../middleware/authMiddleware.js';
 
@@ -11,20 +21,20 @@ const router = Router();
 router.use(authMiddleware);
 
 // GET endpoints
-router.get('/', FolderController.getAllDirectories);
-router.get('/root', FolderController.getRootFolder);
-router.get('/:id', FolderController.getFolderById);
-router.get('/:id/children', FolderController.getDirectoryItems);
-router.get('/:id/classrooms', FolderController.getDirectoryClassrooms);
-router.get('/:id/directories', FolderController.getChildDirectories);
+router.get('/', GetAllDirectories);
+router.get('/root', GetRootFolder);
+router.get('/:id', GetFolderById);
+router.get('/:id/children', GetDirectoryItems);
+router.get('/:id/classrooms', GetDirectoryClassrooms);
+router.get('/:id/directories', GetChildDirectories);
 
 // POST endpoint
-router.post('/', FolderController.createDirectory);
+router.post('/', CreateDirectory);
 
 // PUT endpoint  
-router.put('/:id', FolderController.updateFolder);
+router.put('/:id', UpdateFolder);
 
 // DELETE endpoint
-router.delete('/:id', FolderController.deleteDirectory);
+router.delete('/:id', DeleteDirectory);
 
 export default router;

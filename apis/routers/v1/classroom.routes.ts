@@ -1,32 +1,42 @@
 // Role: Defines all classroom API endpoints and maps them to controller functions
 
 import { Router } from 'express';
-import { ClassroomController } from '../../controllers/v1/classroom.controller.js';
+import { 
+  GetAllClassrooms,
+  GetClassroomById,
+  GetUserClassrooms,
+  GetCreatedClassrooms,
+  CreateClassroom,
+  JoinClassroom,
+  UnenrollFromClassroom,
+  UpdateClassroom,
+  DeleteClassroom
+} from '../../controllers/v1/classroom.controller.js';
 // Import your existing auth middleware 
 import { authMiddleware } from '../../middleware/authMiddleware.js';
 
 const router = Router();
 
 // Public routes (no auth required)
-router.get('/', ClassroomController.getAllClassrooms);
+router.get('/', GetAllClassrooms);
 
 // Protected routes (require authentication)
 router.use(authMiddleware);
 
 // GET endpoints
-router.get('/all', ClassroomController.getUserClassrooms);
-router.get('/created', ClassroomController.getCreatedClassrooms);
-router.get('/unenroll/:classroomId', ClassroomController.unenrollFromClassroom);
-router.get('/:id', ClassroomController.getClassroomById);
+router.get('/all', GetUserClassrooms);
+router.get('/created', GetCreatedClassrooms);
+router.get('/unenroll/:classroomId', UnenrollFromClassroom);
+router.get('/:id', GetClassroomById);
 
 // POST endpoints
-router.post('/', ClassroomController.createClassroom);
-router.post('/join/:classroomId', ClassroomController.joinClassroom);
+router.post('/', CreateClassroom);
+router.post('/join/:classroomId', JoinClassroom);
 
 // PUT endpoint
-router.put('/:classroomId', ClassroomController.updateClassroom);
+router.put('/:classroomId', UpdateClassroom);
 
 // DELETE endpoint
-router.delete('/:classroomId', ClassroomController.deleteClassroom);
+router.delete('/:classroomId', DeleteClassroom);
 
 export default router;
