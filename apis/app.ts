@@ -16,6 +16,9 @@ app.use(bodyParser.urlencoded({ extended: true }))
 // version 1
 app.use('/api/v1/users', userRouterv1)
 app.use('/api/v1/auth', authRouterv1)
+app.use('/', (req, res) => {
+  res.send('Welcome to Co-Learn API')
+})
 /* TODO: folder routes */
 
 app.listen(process.env.SERVER_PORT || 3000, () => {
