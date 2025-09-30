@@ -1,0 +1,16 @@
+model Token {
+    id       String   @id @default(uuid())
+    userId   String
+    token    String 
+    createdAt DateTime @default(now())
+    isRevoked Boolean  @default(false)
+    expiresAt DateTime
+
+    // Relations
+    user     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+    // Indexes
+    @@unique([id, userId])
+
+    @@map("tokens")
+}
