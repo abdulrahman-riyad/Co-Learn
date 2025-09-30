@@ -1,5 +1,5 @@
 import { Router } from "express";
-import auth from "../../middleware/authMiddleware"
+import auth from "../../middleware/authMiddleware.ts"
 const router = Router();
 
 import {
@@ -9,11 +9,11 @@ import {
   CreateUser,
   UpdateUserById,
   DeleteUserById,
-} from "../../controllers/v1/user.controllers.js";
+} from "../../controllers/v1/user.controllers.ts";
 
 router.get("/", GetAllUsers);
-router.get("/:id", GetUserById);
 router.get("/me", auth, GetCurrentUser);
+router.get("/:id", GetUserById);
 router.post("/", CreateUser);
 router.put("/:id", UpdateUserById);
 router.delete("/:id", DeleteUserById);
