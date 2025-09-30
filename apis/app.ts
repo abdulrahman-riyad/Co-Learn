@@ -1,17 +1,21 @@
 import express from 'express'
 import bodyParser from 'body-parser'
-import userRouterv1 from './routers/v1/user.routes.js'
+import userRouterv1 from './routers/v1/user.routes.ts'
+import authRouterv1 from './routers/v1/auth.routes.ts'
 import morgan from 'morgan'
+import cookieParser from "cookie-parser"
 
 const app = express()
 
 app.use(morgan('dev'))
+app.use(cookieParser())
 
 app.use(bodyParser.json())
 app.use(bodyParser.urlencoded({ extended: true }))
 
 // version 1
 app.use('/api/v1/users', userRouterv1)
+app.use('/api/v1/auth', authRouterv1)
 /* TODO: folder routes */
 
 app.listen(process.env.SERVER_PORT || 3000, () => {

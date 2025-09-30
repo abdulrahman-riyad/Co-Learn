@@ -155,7 +155,7 @@ The User model includes the following fields:
 | Method | POST |
 | Body Parameters | `firstName`, `lastName`, `email`, `password`, `picture`(optional) |
 | Success Status | 201 |
-| Success Response | `{ token: JWT_TOKEN, user: USER_OBJECT }` |
+| Success Response | `{ message: "User registered successfully" }` |
 | Error Status | 400 |
 | Error Message | "Email already exists" or "Invalid input data" |
 
