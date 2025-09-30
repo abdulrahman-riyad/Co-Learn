@@ -61,7 +61,7 @@ jobs:
 
       - name: Running the backend server
         run: |
-          npm run start-test &
+          npm run dev &
           npx wait-on http://localhost:5000
 
       - name: Testing
