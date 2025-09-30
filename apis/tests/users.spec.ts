@@ -15,7 +15,7 @@ import { request, default as chaiHttp } from "chai-http";
 chai.use(chaiHttp);
 const baseURL = "http://localhost:5000/api/v1/users/";
 
-describe("User APIs and CRUD Operations tests", function () {
+describe("Testing User APIs and CRUD Operations", function () {
   after(async function () {
     await db.user.deleteMany();
   });
@@ -43,14 +43,14 @@ describe("User APIs and CRUD Operations tests", function () {
         email: "example@gmail.com",
       },
     });
-    if (!user) chai.expect.fail("User is not found");
+    if (!user || !user.password) chai.expect.fail("User is not found");
     chai.expect(user?.firstName === "Abanoub").to.be.true;
     chai.expect(user?.lastName === "Aziz").to.be.true;
     chai.expect(user?.email === "example@gmail.com").to.be.true;
     chai.expect(user?.password).to.not.be.undefined;
     const passwordIsMatching = await bcrypt.compare(
       "Abanoub2025",
-      user!.password
+      user?.password
     );
     chai.expect(passwordIsMatching).to.be.true;
   });
@@ -70,7 +70,7 @@ describe("User APIs and CRUD Operations tests", function () {
     );
     chai.expect(response).to.have.status(CONFLICT);
     chai.expect(response).to.have.nested.property("data");
-    chai.expect(response.data).to.have.property("Error message");
+    chai.expect(response.data).to.have.property("message");
   });
 
   it("PUT /api/v1/users/:id, Updating a user successfully", async function () {
@@ -92,7 +92,7 @@ describe("User APIs and CRUD Operations tests", function () {
     });
 
     chai.expect(updatedUser).not.to.be.null;
-    if (!updatedUser) chai.expect.fail("Updated user is null");
+    if (!updatedUser || !updatedUser.password) chai.expect.fail("Updated user is null");
     chai.expect(updatedUser?.firstName).to.equal("Abelrahman");
     chai.expect(updatedUser?.lastName).to.equal("Riyad");
     chai.expect(response).to.have.status(SUCCESS);
@@ -143,7 +143,7 @@ describe("User APIs and CRUD Operations tests", function () {
     chai.expect(response).to.have.property("data");
     chai
       .expect(response.data)
-      .to.have.property("Error message", "User not found");
+      .to.have.property("message", "User not found");
   });
 
   it("GET /api/v1/users, Getting all the users", async function () {
@@ -205,16 +205,16 @@ describe("User APIs and CRUD Operations tests", function () {
     }
 
     const response = await axios.delete(`${baseURL}${userId}`);
-    chai.expect(response).to.have.status(200);
+    chai.expect(response).to.have.status(SUCCESS);
   });
 
   it("DELETE /api/v1/users/:id, Deleting a user not found on the database", async function () {
     const response = await axios.delete(`${baseURL}no-such-id-exist`, {
       validateStatus: () => true,
     });
-    chai.expect(response).to.have.status(404);
+    chai.expect(response).to.have.status(NOT_FOUND);
     chai
       .expect(response.data)
-      .to.have.property("Error message", "No record was found for a delete.");
+      .to.have.property("message", "User not found");
   });
 });
