@@ -47,7 +47,7 @@ jobs:
         run: npm ci
 
       - name: Setting the database using prisma
-        run: dotenv -e .env.test npx prisma db push
+        run: npx prisma db push
 
       - name: Generating a client
         run: npx prisma generate
