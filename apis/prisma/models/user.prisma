@@ -2,10 +2,14 @@ model User {
   id        String   @id @default(uuid())
   firstName String
   lastName  String
-  password  String
+  password  String?
+  isVerfied Boolean  @default(false)
   email     String   @unique
   picture   String?
   createdAt DateTime @default(now())
+
+  // Relations
+  tokens   Token[]
 
   @@map("users")
 }

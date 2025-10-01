@@ -1,4 +1,4 @@
-import prisma from "../../config/client.js";
+import db from "../../config/client.ts";
 import {
   SUCCESS,
   BAD_REQUEST,
@@ -6,24 +6,24 @@ import {
   UNAUTHORIZED,
   CONFLICT,
   NOT_FOUND,
-} from "../../types/constants.js";
-import { ProtectedRequest } from "../../types/types.js";
-import { Request, Response } from "express";
+} from "../../types/constants.ts";
+import type { ProtectedRequest } from "../../types/types.ts";
+import type { Request, Response } from "express";
 import bcrypt from "bcrypt";
 import { PrismaClientKnownRequestError } from "@prisma/client/runtime/library";
 
 export const GetAllUsers = async function (req: Request, res: Response) {
   try {
-    const users = await prisma.user.findMany({
+    const users = await db.user.findMany({
       omit: {
         password: true,
         createdAt: true,
       },
     });
-    res.status(SUCCESS).json({ users });
+    res.status(SUCCESS).json({ users: users });
   } catch (e) {
     res.status(BAD_REQUEST).json({
-      "Error message": e,
+      "message": e,
     });
   }
 };
@@ -31,7 +31,7 @@ export const GetAllUsers = async function (req: Request, res: Response) {
 export const GetUserById = async function (req: Request, res: Response) {
   const userId = req.params.id;
   try {
-    const user = await prisma.user.findUnique({
+    const user = await db.user.findUnique({
       where: { id: userId },
       omit: {
         password: true,
@@ -40,12 +40,12 @@ export const GetUserById = async function (req: Request, res: Response) {
     });
 
     if (!user) {
-      return res.status(NOT_FOUND).json({ "Error message": "User not found" });
+      return res.status(NOT_FOUND).json({ message: "User not found" });
     }
     res.status(SUCCESS).json({ user });
   } catch (e) {
     res.status(BAD_REQUEST).json({
-      "Error message": e,
+      message: e,
     });
   }
 };
@@ -54,32 +54,13 @@ export const GetCurrentUser = async function (
   req: ProtectedRequest,
   res: Response
 ) {
-  const userId = req.user?.id;
   try {
-    if (!userId) {
-      return res
-        .status(UNAUTHORIZED)
-        .json({ "Error message": "Unauthorized, access denied" });
+    if (req.user){
+      res.status(SUCCESS).json({user: req.user})
     }
-
-    const user = await prisma.user.findUnique({
-      where: { id: userId },
-      omit: {
-        password: true,
-        createdAt: true,
-      },
-    });
-
-    if (!user) {
-      return res
-        .status(BAD_REQUEST)
-        .json({ "Error message": "User not found" });
-    }
-
-    res.status(SUCCESS).json({ user });
   } catch (e) {
     res.status(BAD_REQUEST).json({
-      "Error message": e,
+      message: e,
     });
   }
 };
@@ -91,11 +72,11 @@ export const CreateUser = async function (req: Request, res: Response) {
     const salt = await bcrypt.genSalt(saltRounds);
 
     if (!userData.password) {
-      throw new Error("Password is not found in the request data");
+      throw new Error("Password not found in the request data");
     }
 
     const hashedPassword = await bcrypt.hash(userData.password, salt);
-    const user = await prisma.user.create({
+    const user = await db.user.create({
       data: {
         firstName: userData.firstName,
         lastName: userData.lastName,
@@ -113,11 +94,11 @@ export const CreateUser = async function (req: Request, res: Response) {
   } catch (e) {
     if (e instanceof Error && e.message.includes("Unique constraint failed")) {
       return res.status(CONFLICT).json({
-        "Error message": "User with the same email already exists",
+        message: "User with the same email already exists",
       });
     }
     res.status(BAD_REQUEST).json({
-      "Error message": e,
+      message: e,
     });
   }
 };
@@ -132,7 +113,7 @@ export const UpdateUserById = async function (req: Request, res: Response) {
       const salt = await bcrypt.genSalt(saltRounds);
       userData.password = await bcrypt.hash(userData.password, salt);
     }
-    const user = await prisma.user.update({
+    const user = await db.user.update({
       where: { id: userId },
       data: {
         ...userData,
@@ -146,7 +127,7 @@ export const UpdateUserById = async function (req: Request, res: Response) {
     res.status(SUCCESS).json({ user });
   } catch (e) {
     res.status(BAD_REQUEST).json({
-      "Error message": e,
+      message: e,
     });
   }
 };
@@ -155,7 +136,7 @@ export const DeleteUserById = async function (req: Request, res: Response) {
   const userId = req.params.id;
 
   try {
-    prisma.user
+    db.user
       .delete({
         where: { id: userId },
       })
@@ -163,11 +144,11 @@ export const DeleteUserById = async function (req: Request, res: Response) {
         res.status(SUCCESS).json({ message: "User deleted successfully" });
       })
       .catch((error: PrismaClientKnownRequestError) => {
-        res.status(NOT_FOUND).json({ "Error message": error.meta?.cause });
+        res.status(NOT_FOUND).json({ message: "User not found" });
       });
   } catch (e) {
     res.status(BAD_REQUEST).json({
-      "Error message": e,
+      message: e,
     });
   }
 };

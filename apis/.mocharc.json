@@ -1,5 +1,6 @@
 {
   "require": "tsx",
   "recursive": true,
-  "slow": 500
+  "timeout": 20000,
+  "slow": 250
 }

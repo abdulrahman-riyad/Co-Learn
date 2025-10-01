@@ -1,0 +1,68 @@
+name: testing-backend-workflow
+on:
+  pull_request:
+    paths:
+      - "apis/**"
+    branches:
+      - main
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    env:
+      NODE_ENV: test
+      SERVER_PORT: 5000
+      DATABASE_URL: postgresql://colearn_dev:colearn2025@localhost:5432/colearn?schema=test
+      JWT_ACCESS_SECRET: 40b37bb12db19a2fbbeb661e940583c5e434641ad6088d25592f2f499514c9933672fcf3ecd44af85ef71da8089881de486f5b9b46a40163510bca835fba5bf2
+      JWT_REFRESH_SECRET: dec4b74f5e8197e75716e1bb7f6f08864b42160ba62ee8b765227595da18b5ac412906b2e45d3b3e000b104f33e642b5557f5e82dd12e0836c2c6027e5ba941a
+
+    defaults:
+      run:
+        working-directory: ./apis
+
+    services:
+      postgres:
+        image: postgres
+        env:
+          POSTGRES_USER: colearn_dev
+          POSTGRES_PASSWORD: colearn2025
+          POSTGRES_DB: colearn
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd="pg_isready -U colearn_dev -d colearn"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=5
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Setting up NodeJS
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Installing dependencies
+        run: npm ci
+
+      - name: Wait for Postgres to be ready
+        run: |
+          until pg_isready -h localhost -p 5432 -U colearn_dev; do
+            echo "Waiting for Postgres..."
+            sleep 2
+          done
+
+      - name: Setting the database using prisma
+        run: npx prisma db push
+
+      - name: Generating a client
+        run: npx prisma generate
+
+      - name: Running the backend server
+        run: |
+          npm run dev &
+          npx wait-on http://localhost:5000
+
+      - name: Testing
+        run: npm test
