@@ -13,7 +13,7 @@ import {
   DeleteClassroom
 } from '../../controllers/v1/classroom.controller.js';
 // Import your existing auth middleware 
-import { authMiddleware } from '../../middleware/authMiddleware.js';
+import authMiddleware from '../../middleware/authMiddleware.js';
 
 const router = Router();
 

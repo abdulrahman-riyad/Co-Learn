@@ -10,10 +10,8 @@ model User {
 
   // Relations
   ownedClassrooms        Classroom[]
-  authoredFeedItems      FeedItem[]
-  submissions            Submission[]
   folders                Folder[]
-  usersFoldersClassrooms UsersFoldersClassrooms[]
+  allUsersFoldersClassrooms UsersFoldersClassrooms[]
 
   // Relations
   tokens   Token[]

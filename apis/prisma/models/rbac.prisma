@@ -1,0 +1,48 @@
+model Role {
+  id          Int      @id @default(autoincrement())
+  name        RoleName @unique
+  description String?
+
+  // Relations
+  usersFoldersClassrooms UsersFoldersClassrooms[]
+  rolePermissions        RolePermission[]
+
+  @@map("roles")
+}
+
+enum RoleName {
+  TEACHER
+  COLABORATOR
+  STUDENT
+  ADMIN
+}
+
+model Permission {
+  id         Int      @id @default(autoincrement())
+  name        Perms
+  description String?
+
+  // Relations
+  rolePermissions RolePermission[]
+
+  @@map("permissions")
+}
+
+enum Perms {
+  MANAGE_USERS
+  VIEW_CONTENT
+  EDIT_CONTENT
+  DELETE_CONTENT
+  CREATE_CONTENT
+}
+
+model RolePermission {
+  roleId       Int
+  permissionId Int
+
+  role       Role       @relation(fields: [roleId], references: [id])
+  permission Permission @relation(fields: [permissionId], references: [id])
+
+  @@id([roleId, permissionId])
+  @@map("role_permissions")
+}

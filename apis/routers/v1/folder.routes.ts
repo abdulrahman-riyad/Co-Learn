@@ -13,7 +13,7 @@ import {
   DeleteDirectory
 } from '../../controllers/v1/folder.controller.js';
 // Assuming authMiddleware exists - you'll need to update it to TypeScript
-import { authMiddleware } from '../../middleware/authMiddleware.js';
+import authMiddleware  from '../../middleware/authMiddleware.js';
 
 const router = Router();
 

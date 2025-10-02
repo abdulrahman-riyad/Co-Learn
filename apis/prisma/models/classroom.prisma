@@ -1,5 +1,3 @@
-// Role: Defines the Classroom database table structure
-
 model Classroom {
   id            String   @id @default(uuid())
   classroomName String   @map("classroom_name")
@@ -14,92 +12,7 @@ model Classroom {
   
   // Relations
   owner          User     @relation(fields: [ownerId], references: [id])
-  
   usersFoldersClassrooms UsersFoldersClassrooms[]
-  feedItems              FeedItem[]
-  announcements          Announcement[]
-  activities             Activity[]
-  invitations            Invitation[]
   
   @@map("classrooms")
-}
-
-model FeedItem {
-  id          String   @id @default(uuid())
-  classroomId String   @map("classroom_id")
-  authorId    String   @map("author_id")
-  type        String
-  referenceId String?  @map("reference_id")
-  createdAt   DateTime @default(now()) @map("created_at")
-  
-  // Relations
-  classroom Classroom @relation(fields: [classroomId], references: [id], onDelete: Cascade)
-  author    User      @relation(fields: [authorId], references: [id])
-  
-  @@map("feed_items")
-}
-
-model Activity {
-  id          String   @id @default(uuid())
-  type        String    // 'assignment', 'quiz', 'exam'
-  classroomId String   @map("classroom_id")
-  title       String
-  isDraft     Boolean   @default(false)
-  dueDate     DateTime? @map("due_date")
-  details     Json      // JSONB for flexible activity data
-  createdAt   DateTime  @default(now()) @map("created_at")
-  updatedAt   DateTime  @updatedAt @map("updated_at")
-  
-  // Relations
-  classroom   Classroom    @relation(fields: [classroomId], references: [id], onDelete: Cascade)
-  submissions Submission[]
-  
-  @@map("activities")
-}
-
-model Announcement {
-  id          String   @id @default(uuid())
-  classroomId String   @map("classroom_id")
-  title       String
-  content     String?   @db.Text
-  isDraft     Boolean   @default(false)
-  media       Json?     // JSONB for media attachments
-  createdAt   DateTime  @default(now()) @map("created_at")
-  updatedAt   DateTime  @updatedAt @map("updated_at")
-  
-  // Relations
-  classroom Classroom @relation(fields: [classroomId], references: [id], onDelete: Cascade)
-  
-  @@map("announcements")
-}
-
-model Submission {
-  id          String   @id @default(uuid())
-  userId      String   @map("user_id")
-  activityId  String   @map("activity_id")
-  startedAt   DateTime? @map("started_at")
-  submittedAt DateTime? @map("submitted_at")
-  grade       Int?
-  feedback    Json?     // JSONB for AI feedback
-  
-  // Relations
-  user     User     @relation(fields: [userId], references: [id])
-  activity Activity @relation(fields: [activityId], references: [id], onDelete: Cascade)
-  
-  @@unique([userId, activityId])
-  @@map("submissions")
-}
-
-model Invitation {
-  id          String   @id @default(uuid())
-  classroomId String   @map("classroom_id")
-  roleId      Int      @map("role_id")
-  createdAt   DateTime @default(now()) @map("created_at")
-  
-  // Relations
-  classroom Classroom @relation(fields: [classroomId], references: [id], onDelete: Cascade)
-  role      Role      @relation(fields: [roleId], references: [id])
-  
-  @@index([classroomId])
-  @@map("invitations")
 }
