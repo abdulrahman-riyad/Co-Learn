@@ -5,6 +5,7 @@ import { PrismaClient } from '@prisma/client';
 
 const prisma = new PrismaClient();
 
+<<<<<<< HEAD
 // Get all folders for the logged-in user
 export const GetAllDirectories = async function (req: Request, res: Response) {
   try {
@@ -13,6 +14,17 @@ export const GetAllDirectories = async function (req: Request, res: Response) {
     const folders = await prisma.folder.findMany({
       where: { userId: userId }
     });
+=======
+export class FolderController {
+  // Get all folders for the logged-in user
+  static async getAllDirectories(req: Request, res: Response) {
+    try {
+      const userId = (req as any).user?.id;
+      
+      const folders = await prisma.folder.findMany({
+        where: { userId: userId }
+      });
+>>>>>>> 9f2a2af (folders and classrooms apis and testing)
 
     res.json({ success: true, data: folders });
   } catch (error) {
@@ -54,13 +66,26 @@ export const GetRootFolder = async function (req: Request, res: Response) {
   try {
     const userId = (req as any).user?.id;
 
+<<<<<<< HEAD
     let rootFolder = await prisma.folder.findFirst({
       where: { 
         userId: userId, 
         parentId: null 
+=======
+      const folder = await prisma.folder.findFirst({
+        where: { id, userId: userId }
+      });
+
+      if (!folder) {
+        return res.status(404).json({ 
+          success: false, 
+          message: 'Folder not found' 
+        });
+>>>>>>> 9f2a2af (folders and classrooms apis and testing)
       }
     });
 
+<<<<<<< HEAD
     // Create root folder if it doesn't exist
     if (!rootFolder) {
       rootFolder = await prisma.folder.create({
@@ -69,6 +94,155 @@ export const GetRootFolder = async function (req: Request, res: Response) {
           parentId: null,
           name: 'Root',
           color: '#3b82f6'
+=======
+      res.json({ success: true, data: folder });
+    } catch (error) {
+      res.status(500).json({ 
+        success: false, 
+        message: 'Failed to get folder' 
+      });
+    }
+  }
+
+  // Get or create root folder for user
+  static async getRootFolder(req: Request, res: Response) {
+    try {
+      const userId = (req as any).user?.id;
+
+      let rootFolder = await prisma.folder.findFirst({
+        where: { 
+          userId: userId, 
+          parentId: null 
+        }
+      });
+
+      // Create root folder if it doesn't exist
+      if (!rootFolder) {
+        rootFolder = await prisma.folder.create({
+          data: {
+            userId: userId,
+            parentId: null,
+            name: 'Root',
+            color: '#3b82f6'
+          }
+        });
+      }
+
+      res.json({ success: true, data: rootFolder });
+    } catch (error) {
+      res.status(500).json({ 
+        success: false, 
+        message: 'Failed to get root folder' 
+      });
+    }
+  }
+
+  // Get all items (subfolders and classrooms) in the folder
+  static async getDirectoryItems(req: Request, res: Response) {
+    try {
+      const { id } = req.params;
+      const userId = (req as any).user?.id;
+
+      // Get subfolders
+      const folders = await prisma.folder.findMany({
+        where: { 
+          parentId: id, 
+          userId: userId 
+        }
+      });
+
+      // Get classrooms in this folder
+      const classrooms = await prisma.usersFoldersClassrooms.findMany({
+        where: { 
+          folderId: id, 
+          userId: userId 
+        },
+        include: { 
+          classroom: true 
+        }
+      });
+
+      res.json({ 
+        success: true, 
+        data: { 
+          folders, 
+          classrooms: classrooms.map(c => c.classroom) 
+        } 
+      });
+    } catch (error) {
+      res.status(500).json({ 
+        success: false, 
+        message: 'Failed to get folder items' 
+      });
+    }
+  }
+
+  // Get only classrooms in a folder
+  static async getDirectoryClassrooms(req: Request, res: Response) {
+    try {
+      const { id } = req.params;
+      const userId = (req as any).user?.id;
+
+      const classrooms = await prisma.usersFoldersClassrooms.findMany({
+        where: { 
+          folderId: id, 
+          userId: userId 
+        },
+        include: { 
+          classroom: true 
+        }
+      });
+
+      res.json({ 
+        success: true, 
+        data: classrooms.map(c => c.classroom) 
+      });
+    } catch (error) {
+      res.status(500).json({ 
+        success: false, 
+        message: 'Failed to get classrooms' 
+      });
+    }
+  }
+
+  // Get only subfolders (no classrooms)
+  static async getChildDirectories(req: Request, res: Response) {
+    try {
+      const { id } = req.params;
+      const userId = (req as any).user?.id;
+
+      const folders = await prisma.folder.findMany({
+        where: { 
+          parentId: id, 
+          userId: userId 
+        }
+      });
+
+      res.json({ success: true, data: folders });
+    } catch (error) {
+      res.status(500).json({ 
+        success: false, 
+        message: 'Failed to get subfolders' 
+      });
+    }
+  }
+
+  // Create a new folder
+  static async createDirectory(req: Request, res: Response) {
+    try {
+      const userId = (req as any).user?.id;
+      const { name, parentDirectory, color } = req.body;
+
+      // If name is missing, provide a sensible default to align with docs sample
+      const folderName = name && typeof name === 'string' && name.trim().length > 0 ? name.trim() : 'New Folder';
+
+      const newFolder = await prisma.folder.create({
+        data: {
+          userId: userId,
+          parentId: parentDirectory || null,
+          name: folderName,
+          color: color || '#3b82f6'
+>>>>>>> 9f2a2af (folders and classrooms apis and testing)
         }
       });
     }
@@ -88,14 +262,28 @@ export const GetDirectoryItems = async function (req: Request, res: Response) {
     const { id } = req.params;
     const userId = (req as any).user?.id;
 
+<<<<<<< HEAD
     // Get subfolders
     const folders = await prisma.folder.findMany({
       where: { 
         parentId: id, 
         userId: userId 
+=======
+      // Check if folder exists and belongs to user
+      const folder = await prisma.folder.findFirst({
+        where: { id, userId: userId }
+      });
+
+      if (!folder) {
+        return res.status(404).json({ 
+          success: false, 
+          message: 'Folder not found' 
+        });
+>>>>>>> 9f2a2af (folders and classrooms apis and testing)
       }
     });
 
+<<<<<<< HEAD
     // Get classrooms in this folder
     const classrooms = await prisma.usersFoldersClassrooms.findMany({
       where: { 
@@ -106,6 +294,16 @@ export const GetDirectoryItems = async function (req: Request, res: Response) {
         classroom: true 
       }
     });
+=======
+      const updated = await prisma.folder.update({
+        where: { id },
+        data: {
+          ...(name && { name }),
+          ...(color && { color }),
+          ...(parent_id !== undefined && { parentId: parent_id })
+        }
+      });
+>>>>>>> 9f2a2af (folders and classrooms apis and testing)
 
     res.json({ 
       success: true, 
@@ -128,6 +326,7 @@ export const GetDirectoryClassrooms = async function (req: Request, res: Respons
     const { id } = req.params;
     const userId = (req as any).user?.id;
 
+<<<<<<< HEAD
     const classrooms = await prisma.usersFoldersClassrooms.findMany({
       where: { 
         folderId: id, 
@@ -135,9 +334,22 @@ export const GetDirectoryClassrooms = async function (req: Request, res: Respons
       },
       include: { 
         classroom: true 
+=======
+      // Check if folder exists and belongs to user
+      const folder = await prisma.folder.findFirst({
+        where: { id, userId: userId }
+      });
+
+      if (!folder) {
+        return res.status(404).json({ 
+          success: false, 
+          message: 'Folder not found' 
+        });
+>>>>>>> 9f2a2af (folders and classrooms apis and testing)
       }
     });
 
+<<<<<<< HEAD
     res.json({ 
       success: true, 
       data: classrooms.map(c => c.classroom) 
@@ -155,6 +367,16 @@ export const GetChildDirectories = async function (req: Request, res: Response) 
   try {
     const { id } = req.params;
     const userId = (req as any).user?.id;
+=======
+      // Check if folder has contents
+      const hasSubfolders = await prisma.folder.count({
+        where: { parentId: id }
+      });
+
+      const hasClassrooms = await prisma.usersFoldersClassrooms.count({
+        where: { folderId: id }
+      });
+>>>>>>> 9f2a2af (folders and classrooms apis and testing)
 
     const folders = await prisma.folder.findMany({
       where: { 
