@@ -5,8 +5,11 @@ on:
       - "apis/**"
     branches:
       - main
+    types:
+      - labeled
 jobs:
   test:
+    if: contains(github.event.pull_request.labels.*.name, 'ready for merge')
     runs-on: ubuntu-latest
     env:
       NODE_ENV: test
