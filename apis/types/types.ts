@@ -1,10 +1,16 @@
-import { Request } from "express";
+import type { Request } from "express";
+import type { JwtPayload } from "jsonwebtoken";
 
 export interface ProtectedRequest extends Request {
-    user?:{
+    user?: {
         id: string
         email: string
-        iat: number
-        exp: number
-    }
+        firstName: string
+        lastName: string
+        picture: string | null
+    } | null
+}
+
+export interface UserPayload extends JwtPayload {
+    userId?: string
 }
