@@ -1,504 +1,474 @@
-// Role: Handles all classroom-related business logic - creating, joining, managing classrooms
+import { Request, Response } from "express";
+import prisma from "../../config/client.ts";
+import {
+  BAD_REQUEST,
+  NOT_FOUND,
+  SERVER_ERROR,
+  SUCCESS,
+  ROLES,
+  CREATED,
+} from "../../types/constants";
+import { ProtectedRequest } from "../../types/types";
+import { Prisma } from "@prisma/client";
+import jwt from "jsonwebtoken";
 
-import { Request, Response } from 'express';
-import { PrismaClient } from '@prisma/client';
-
-const prisma = new PrismaClient();
-
-// Get all public classrooms
+// Get all classrooms
 export const GetAllClassrooms = async function (req: Request, res: Response) {
-    try {
-      const classrooms = await prisma.classroom.findMany({
-        where: { isPrivate: false },
-        include: {
-          owner: {
-            select: {
-              id: true,
-              firstName: true,
-              lastName: true,
-              email: true
-            }
-          }
-        }
-      });
+  try {
+    const classrooms = await prisma.classroom.findMany({
+      include: {
+        owner: {
+          select: {
+            id: true,
+            firstName: true,
+            lastName: true,
+            email: true,
+          },
+        },
+      },
+    });
 
-      res.json({ 
-        success: true, 
-        data: classrooms,
-        count: classrooms.length 
-      });
-    } catch (error) {
-      res.status(500).json({ 
-        success: false, 
-        message: 'Failed to get classrooms' 
-      });
-    }
+    res.status(SUCCESS).json({
+      classrooms,
+    });
+  } catch (error) {
+    res.status(SERVER_ERROR).json({
+      message: "Failed to get classrooms",
+    });
   }
+};
 
 // Get specific classroom by ID
 export const GetClassroomById = async function (req: Request, res: Response) {
-    try {
-      const { id } = req.params;
-      const userId = (req as any).user?.id;
-
-      const classroom = await prisma.classroom.findUnique({
-        where: { id },
-        include: {
-          owner: {
-            select: {
-              id: true,
-              firstName: true,
-              lastName: true,
-              email: true,
-              picture: true
-            }
+  try {
+    const id = req.params.id;
+    const classroom = await prisma.classroom.findUnique({
+      where: { id: id },
+      include: {
+        owner: {
+          select: {
+            id: true,
+            firstName: true,
+            lastName: true,
+            email: true,
           },
-          feedItems: {
-            take: 10,
-            orderBy: { createdAt: 'desc' }
-          }
-        }
-      });
+        },
+      },
+    });
 
-      if (!classroom) {
-        return res.status(404).json({ 
-          success: false, 
-          message: 'Classroom not found' 
-        });
-      }
-
-      // Check if private and user has access
-      if (classroom.isPrivate) {
-        const hasAccess = await prisma.usersFoldersClassrooms.findFirst({
-          where: {
-            classroomId: id,
-            userId: userId
-          }
-        });
-
-        if (!hasAccess && classroom.ownerId !== userId) {
-          return res.status(403).json({ 
-            success: false, 
-            message: 'Access denied to private classroom' 
-          });
-        }
-      }
-
-      res.json({ success: true, data: classroom });
-    } catch (error) {
-      res.status(500).json({ 
-        success: false, 
-        message: 'Failed to get classroom' 
+    if (!classroom) {
+      return res.status(NOT_FOUND).json({
+        success: false,
+        message: "Classroom not found",
       });
     }
+
+    res.status(SUCCESS).json({ classroom });
+  } catch (error) {
+    res.status(SERVER_ERROR).json({
+      message: "Failed to get classroom",
+    });
   }
+};
 
 // Get all classrooms user is enrolled in
-export const GetUserClassrooms = async function (req: Request, res: Response) {
-    try {
-      const userId = (req as any).user?.id;
-
-      const enrollments = await prisma.usersFoldersClassrooms.findMany({
-        where: { userId: userId },
-        include: {
-          classroom: {
-            include: {
-              owner: {
-                select: {
-                  id: true,
-                  firstName: true,
-                  lastName: true
-                }
-              }
-            }
-          },
-          role: true
-        }
-      });
-
-      const classrooms = enrollments.map(e => ({
-        ...e.classroom,
-        role: e.role,
-        folderId: e.folderId
-      }));
-
-      res.json({ 
-        success: true, 
-        data: classrooms,
-        count: classrooms.length
-      });
-    } catch (error) {
-      res.status(500).json({ 
-        success: false, 
-        message: 'Failed to get user classrooms' 
+export const GetUserClassrooms = async function (
+  req: ProtectedRequest,
+  res: Response
+) {
+  try {
+    const user = req.user;
+    const folderId = (req.query.folderId as string) || undefined;
+    const isOwner = req.query.isOwner ? true : false;
+    if (!user) {
+      return res.status(BAD_REQUEST).json({
+        message: "User not found in request",
       });
     }
+
+    const enrollments = await prisma.usersFoldersClassrooms.findMany({
+      where: {
+        userId: user.id,
+        folderId: folderId,
+      },
+      include: {
+        classroom: {
+          select: {
+            id: true,
+            name: true,
+            ownerId: true,
+            description: true,
+            avatar: true,
+            cover: true,
+            isPrivate: true,
+          },
+        },
+        folder: {
+          select: {
+            id: true,
+            name: true,
+            color: true,
+          },
+        },
+        role: true,
+      },
+    });
+
+    const classrooms = enrollments.map((e) => {
+      return {
+        ...e.classroom,
+        folderId: e.folderId,
+        folderColor: e.folder.color,
+        role: e.role.name,
+      };
+    });
+
+    if (isOwner) {
+      const ownedClassrooms = classrooms.filter((c) => c.ownerId === user.id);
+      return res.status(SUCCESS).json({
+        classrooms: ownedClassrooms,
+      });
+    }
+
+    res.status(SUCCESS).json({
+      classrooms,
+    });
+  } catch (error) {
+    res.status(SERVER_ERROR).json({
+      message: "Failed to get user classrooms",
+    });
   }
+};
 
 // Get classrooms created by the user
-export const GetCreatedClassrooms = async function (req: Request, res: Response) {
-    try {
-      const userId = (req as any).user?.id;
-
-      const classrooms = await prisma.classroom.findMany({
-        where: { ownerId: userId },
-        include: {
-          _count: {
-            select: {
-              usersFoldersClassrooms: true,
-              activities: true
-            }
-          }
-        }
-      });
-
-      res.json({ 
-        success: true, 
-        data: classrooms,
-        count: classrooms.length
-      });
-    } catch (error) {
-      res.status(500).json({ 
-        success: false, 
-        message: 'Failed to get created classrooms' 
+export const GetCreatedClassrooms = async function (
+  req: ProtectedRequest,
+  res: Response
+) {
+  try {
+    const user = req.user;
+    if (!user) {
+      return res.status(BAD_REQUEST).json({
+        message: "User not found in request",
       });
     }
+
+    const classrooms = await prisma.classroom.findMany({
+      where: { ownerId: user.id },
+      omit: {
+        createdAt: true,
+        updatedAt: true,
+      },
+    });
+
+    res.status(SUCCESS).json({
+      classrooms,
+    });
+  } catch (error) {
+    res.status(SERVER_ERROR).json({
+      message: "Failed to get created classrooms",
+    });
   }
+};
 
 // Create a new classroom
-export const CreateClassroom = async function (req: Request, res: Response) {
-    try {
-      const userId = (req as any).user?.id;
-      const { name, description, tags, avatar, cover, isPrivate } = req.body;
-      const { parentFolder } = req.query;
+export const CreateClassroom = async function (
+  req: ProtectedRequest,
+  res: Response
+) {
+  try {
+    const user = req.user;
+    const parentDirectory =
+      (req.query.parentFolder as string) ||
+      req.cookies["parentFolder"] ||
+      undefined;
 
-      if (!name) {
-        return res.status(400).json({ 
-          success: false, 
-          message: 'Classroom name is required' 
-        });
-      }
+    const { name, description, tags, avatar, cover, isPrivate } = req.body;
 
-      // Get or create roles first
-      let teacherRole = await prisma.role.findFirst({
-        where: { name: 'teacher' }
-      });
-
-      if (!teacherRole) {
-        // Create teacher role if it doesn't exist
-        teacherRole = await prisma.role.create({
-          data: { name: 'teacher' }
-        });
-      }
-
-      // Create classroom
-      const classroom = await prisma.classroom.create({
-        data: {
-          classroomName: name,
-          description: description || null,
-          ownerId: userId,
-          tags: tags || [],
-          avatar: avatar || null,
-          cover: cover || null,
-          isPrivate: isPrivate || false
-        }
-      });
-
-      // Add creator to classroom with teacher role
-      let folderId = parentFolder as string;
-      
-      // If no folder specified, use or create root folder
-      if (!folderId) {
-        const rootFolder = await prisma.folder.findFirst({
-          where: { 
-            userId: userId, 
-            parentId: null 
-          }
-        });
-
-        if (rootFolder) {
-          folderId = rootFolder.id;
-        } else {
-          const newRoot = await prisma.folder.create({
-            data: {
-              userId: userId,
-              parentId: null,
-              name: 'My Classrooms',
-              color: '#3b82f6'
-            }
-          });
-          folderId = newRoot.id;
-        }
-      }
-
-      // Add to usersFoldersClassrooms (camelCase)
-      await prisma.usersFoldersClassrooms.create({
-        data: {
-          userId: userId,
-          folderId: folderId,
-          classroomId: classroom.id,
-          roleId: teacherRole.id
-        }
-      });
-
-      res.status(201).json({ 
-        success: true, 
-        message: 'Classroom created successfully',
-        data: classroom 
-      });
-    } catch (error) {
-      console.error(error);
-      res.status(500).json({ 
-        success: false, 
-        message: 'Failed to create classroom' 
+    if (!user || parentDirectory === undefined) {
+      return res.status(BAD_REQUEST).json({
+        message: "User not found in request or parent folder not specified",
       });
     }
+
+    // Create classroom
+    const classroom = await prisma.classroom.create({
+      data: {
+        name: name,
+        description: description || null,
+        ownerId: user.id,
+        tags: tags || [],
+        avatar: avatar || null,
+        cover: cover || null,
+        isPrivate: isPrivate,
+        usersFoldersClassrooms: {
+          create: {
+            userId: user.id,
+            folderId: parentDirectory,
+            roleId: ROLES.TEACHER,
+          },
+        },
+      },
+    });
+
+    res.status(CREATED).json({
+      message: "Classroom created successfully",
+      classroom,
+    });
+  } catch (error) {
+    if (error instanceof Prisma.PrismaClientKnownRequestError) {
+      if (error.code === "P2003") {
+        return res.status(BAD_REQUEST).json({
+          message: "Parent folder does not exist",
+        });
+      }
+
+      return res.status(BAD_REQUEST).json({
+        message: error.message,
+      });
+    }
+    res.status(SERVER_ERROR).json({
+      message: "Failed to create classroom",
+    });
   }
+};
 
 // Join a classroom
-export const JoinClassroom = async function (req: Request, res: Response) {
-    try {
-      const userId = (req as any).user?.id;
-      const { classroomId } = req.params;
-      const { parentFolder, uri, callback } = req.query as { parentFolder?: string, uri?: string, callback?: string };
-
-      // Check if classroom exists
-      const classroom = await prisma.classroom.findUnique({
-        where: { id: classroomId }
-      });
-
-      if (!classroom) {
-        return res.status(404).json({ 
-          success: false, 
-          message: 'Classroom not found' 
-        });
-      }
-
-      // Check if already enrolled
-      const existing = await prisma.usersFoldersClassrooms.findFirst({
-        where: {
-          userId: userId,
-          classroomId: classroomId
-        }
-      });
-
-      if (existing) {
-        return res.status(400).json({ 
-          success: false, 
-          message: 'Already enrolled in this classroom' 
-        });
-      }
-
-      // Get or create student role
-      let studentRole = await prisma.role.findFirst({
-        where: { name: 'student' }
-      });
-
-      if (!studentRole) {
-        // Create student role if it doesn't exist
-        studentRole = await prisma.role.create({
-          data: { name: 'student' }
-        });
-      }
-
-      // Get or create folder
-      let folderId = parentFolder as string;
-      if (!folderId) {
-        const rootFolder = await prisma.folder.findFirst({
-          where: { 
-            userId: userId, 
-            parentId: null 
-          }
-        });
-
-        if (rootFolder) {
-          folderId = rootFolder.id;
-        } else {
-          const newRoot = await prisma.folder.create({
-            data: {
-              userId: userId,
-              parentId: null,
-              name: 'My Courses',
-              color: '#10b981'
-            }
-          });
-          folderId = newRoot.id;
-        }
-      }
-
-      // Enroll user
-      await prisma.usersFoldersClassrooms.create({
-        data: {
-          userId: userId,
-          folderId: folderId,
-          classroomId: classroomId,
-          roleId: studentRole.id
-        }
-      });
-
-      res.json({ 
-        success: true, 
-        message: 'Successfully joined classroom',
-        data: classroom,
-        meta: {
-          invitationUri: uri || null,
-          callback: callback || null,
-        }
-      });
-    } catch (error) {
-      res.status(500).json({ 
-        success: false, 
-        message: 'Failed to join classroom' 
+export const JoinClassroom = async function (
+  req: ProtectedRequest,
+  res: Response
+) {
+  try {
+    const user = req.user;
+    const invitationToken = req.query.token as string;
+    if (!user || !invitationToken) {
+      return res.status(BAD_REQUEST).json({
+        message: "User or invitation token not found in request",
       });
     }
+
+    const { classroomId } = req.params;
+    const parentFolderId = req.query.parentFolder as string;
+
+    if (!process.env.JWT_ACCESS_SECRET) {
+      throw new Error("jwt secret is not defined");
+    }
+
+    const invitationPayload = jwt.verify(
+      invitationToken,
+      process.env.JWT_ACCESS_SECRET
+    ) as {
+      invitationId: string;
+    };
+
+    // Check if classroom exists, folder exists, and user is not enrolled already
+    const [classroom, isFolderExists, existing] = await Promise.all([
+      prisma.classroom.findUnique({
+        where: { id: classroomId },
+        select: {
+          id: true,
+        },
+      }),
+      parentFolderId
+        ? prisma.folder.count({ where: { id: parentFolderId } })
+        : Promise.resolve(null),
+      prisma.usersFoldersClassrooms.count({
+        where: {
+          userId: user.id,
+          classroomId: classroomId,
+        },
+      }),
+    ]);
+
+    if (!classroom || !isFolderExists) {
+      return res.status(NOT_FOUND).json({
+        message: "Classroom or folder not found",
+      });
+    } else if (existing) {
+      return res.status(BAD_REQUEST).json({
+        message: "Already enrolled in this classroom",
+      });
+    }
+
+    // Enroll user
+    await prisma
+      .$transaction(async (tx) => {
+        // validating the invitation is found
+        const invitation = await tx.invitations.findUnique({
+          where: {
+            id: invitationPayload.invitationId,
+          },
+        });
+
+        if (
+          !invitation ||
+          invitation.isRevoked ||
+          invitation.classroomId !== classroomId
+        ) {
+          throw new Error("Invalid invitationId");
+        }
+        const updatedInvitation = await tx.invitations.update({
+          where: {
+            id: invitation.id,
+            isRevoked: false,
+            expiresAt: { gte: new Date() },
+            OR: [
+              { maxUses: null },
+              { uses: { lt: invitation.maxUses ?? Infinity } },
+            ],
+          },
+          data: {
+            uses: { increment: 1 },
+          },
+        });
+        if (!updatedInvitation) {
+          throw new Error(
+            "Invitation is either expired, revoked or reached the maximum limit of uses"
+          );
+        }
+
+        await tx.usersFoldersClassrooms.create({
+          data: {
+            userId: user.id,
+            classroomId: classroomId,
+            folderId: parentFolderId,
+            roleId: ROLES[(invitation.role as keyof typeof ROLES) || "STUDENT"],
+          },
+        });
+      })
+      .catch((e) => {
+        return res.status(BAD_REQUEST).json({
+          message: e.message || "Failed to join classroom",
+        });
+      });
+
+    res.status(SUCCESS).json({
+      message: "Successfully joined classroom",
+      classroom,
+    });
+  } catch (error) {
+    res.status(SERVER_ERROR).json({
+      message: "Failed to join classroom",
+    });
   }
+};
 
 // Leave a classroom
-export const UnenrollFromClassroom = async function (req: Request, res: Response) {
-    try {
-      const userId = (req as any).user?.id;
-      const { classroomId } = req.params;
-
-      // Check enrollment
-      const enrollment = await prisma.usersFoldersClassrooms.findFirst({
-        where: {
-          userId: userId,
-          classroomId: classroomId
-        }
-      });
-
-      if (!enrollment) {
-        return res.status(404).json({ 
-          success: false, 
-          message: 'Not enrolled in this classroom' 
-        });
-      }
-
-      // Check if owner
-      const classroom = await prisma.classroom.findUnique({
-        where: { id: classroomId }
-      });
-
-      if (classroom?.ownerId === userId) {
-        return res.status(400).json({ 
-          success: false, 
-          message: 'Owner cannot leave their own classroom. Delete it instead.' 
-        });
-      }
-
-      // Remove enrollment
-      await prisma.usersFoldersClassrooms.delete({
-        where: {
-          userId_folderId_classroomId: {
-            userId: userId,
-            folderId: enrollment.folderId,
-            classroomId: classroomId
-          }
-        }
-      });
-
-      res.json({ 
-        success: true, 
-        message: 'Successfully left classroom' 
-      });
-    } catch (error) {
-      res.status(500).json({ 
-        success: false, 
-        message: 'Failed to leave classroom' 
+export const UnenrollFromClassroom = async function (
+  req: ProtectedRequest,
+  res: Response
+) {
+  try {
+    const user = req.user;
+    if (!user) {
+      return res.status(BAD_REQUEST).json({
+        message: "User not found in request",
       });
     }
+    const { classroomId } = req.params;
+
+    // Check enrollment
+    const enrollment = await prisma.usersFoldersClassrooms.findUnique({
+      where: {
+        userId_classroomId: {
+          userId: user.id,
+          classroomId: classroomId,
+        },
+      },
+    });
+
+    if (!enrollment) {
+      return res.status(NOT_FOUND).json({
+        message: "Not enrolled in this classroom",
+      });
+    }
+
+    // Check if user is owner
+    if (enrollment.roleId === ROLES.TEACHER) {
+      return res.status(BAD_REQUEST).json({
+        message: "Owner cannot leave their own classroom. Delete it instead.",
+      });
+    }
+
+    // Remove enrollment
+    await prisma.usersFoldersClassrooms.delete({
+      where: {
+        userId_folderId_classroomId: {
+          userId: user.id,
+          folderId: enrollment.folderId,
+          classroomId: classroomId,
+        },
+      },
+    });
+
+    res.status(SUCCESS).json({
+      message: "Successfully left classroom",
+    });
+  } catch (error) {
+    
+    res.status(SERVER_ERROR).json({
+      message: "Failed to leave classroom",
+    });
   }
+};
 
 // Update classroom
-export const UpdateClassroom = async function (req: Request, res: Response) {
-    try {
-      const userId = (req as any).user?.id;
-      const { classroomId } = req.params;
-      const { name, description, tags, avatar, cover, isPrivate } = req.body;
-
-      // Check ownership
-      const classroom = await prisma.classroom.findUnique({
-        where: { id: classroomId }
-      });
-
-      if (!classroom) {
-        return res.status(404).json({ 
-          success: false, 
-          message: 'Classroom not found' 
-        });
-      }
-
-      if (classroom.ownerId !== userId) {
-        return res.status(403).json({ 
-          success: false, 
-          message: 'Only owner can update classroom' 
-        });
-      }
-
-      // Update classroom
-      const updated = await prisma.classroom.update({
-        where: { id: classroomId },
-        data: {
-          ...(name && { classroomName: name }),
-          ...(description !== undefined && { description }),
-          ...(tags && { tags }),
-          ...(avatar !== undefined && { avatar }),
-          ...(cover !== undefined && { cover }),
-          ...(isPrivate !== undefined && { isPrivate })
-        }
-      });
-
-      res.json({ 
-        success: true, 
-        message: 'Classroom updated successfully',
-        data: updated 
-      });
-    } catch (error) {
-      res.status(500).json({ 
-        success: false, 
-        message: 'Failed to update classroom' 
+export const UpdateClassroom = async function (req: ProtectedRequest, res: Response) {
+  try {
+    const userId = req.user?.id;
+    if (!userId) {
+      return res.status(BAD_REQUEST).json({
+        message: "User not found in request",
       });
     }
+    const { classroomId } = req.params;
+    const { name, description, tags, avatar, cover, isPrivate } = req.body;
+
+    // Update classroom
+    const updatedClassroom = await prisma.classroom.update({
+      where: { id: classroomId },
+      data: {
+        ...(name && { classroomName: name }),
+        ...(description !== undefined && { description }),
+        ...(tags && { tags }),
+        ...(avatar !== undefined && { avatar }),
+        ...(cover !== undefined && { cover }),
+        ...(isPrivate !== undefined && { isPrivate }),
+      },
+    });
+
+    res.json({
+      message: "Classroom updated successfully",
+      updatedClassroom,
+    });
+  } catch (error) {
+    res.status(SERVER_ERROR).json({
+      message: "Failed to update classroom",
+    });
   }
+};
 
 // Delete classroom
-export const DeleteClassroom = async function (req: Request, res: Response) {
-    try {
-      const userId = (req as any).user?.id;
-      const { classroomId } = req.params;
-
-      // Check ownership
-      const classroom = await prisma.classroom.findUnique({
-        where: { id: classroomId }
-      });
-
-      if (!classroom) {
-        return res.status(404).json({ 
-          success: false, 
-          message: 'Classroom not found' 
-        });
-      }
-
-      if (classroom.ownerId !== userId) {
-        return res.status(403).json({ 
-          success: false, 
-          message: 'Only owner can delete classroom' 
-        });
-      }
-
-      // Delete classroom (cascade will handle related records)
-      await prisma.classroom.delete({
-        where: { id: classroomId }
-      });
-
-      res.json({ 
-        success: true, 
-        message: 'Classroom deleted successfully' 
-      });
-    } catch (error) {
-      res.status(500).json({ 
-        success: false, 
-        message: 'Failed to delete classroom' 
+export const DeleteClassroom = async function (req: ProtectedRequest, res: Response) {
+  try {
+    const userId = req.user?.id;
+    if (!userId) {
+      return res.status(BAD_REQUEST).json({
+        message: "User not found in request",
       });
     }
+    const { classroomId } = req.params;
+
+    await prisma.classroom.delete({
+      where: { id: classroomId },
+    });
+
+    res.json({
+      message: "Classroom deleted successfully",
+    });
+  } catch (error) {
+    res.status(SERVER_ERROR).json({
+      message: "Failed to delete classroom",
+    });
   }
+};
