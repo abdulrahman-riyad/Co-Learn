@@ -6,7 +6,12 @@ model User {
   isVerfied Boolean  @default(false)
   email     String   @unique
   picture   String?
-  createdAt DateTime @default(now())
+  createdAt DateTime @default(now()) @map("created_at")
+
+  // Relations
+  ownedClassrooms        Classroom[]
+  folders                Folder[]
+  allUsersFoldersClassrooms UsersFoldersClassrooms[]
 
   // Relations
   tokens   Token[]

@@ -1,0 +1,37 @@
+model Folder {
+  id        String   @id @default(uuid())
+  userId    String   @map("user_id")
+  parentId  String?  @map("parent_id")
+  name      String
+  color     String   @default("#8f9090ff")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+  
+  // Relations
+  user      User     @relation(fields: [userId], references: [id])
+  parent    Folder?  @relation("FolderToFolder", fields: [parentId], references: [id])
+  children  Folder[] @relation("FolderToFolder")
+  
+  usersFoldersClassrooms UsersFoldersClassrooms[]
+  
+  @@index([userId, parentId, name])
+  @@map("folders")
+}
+
+model UsersFoldersClassrooms {
+  userId      String   @map("user_id")
+  folderId    String   @map("folder_id")
+  classroomId String   @map("classroom_id")
+  roleId      Int      @map("role_id")
+  createdAt   DateTime @default(now()) @map("created_at")
+  
+  // Relations
+  user      User      @relation(fields: [userId], references: [id])
+  folder    Folder    @relation(fields: [folderId], references: [id])
+  classroom Classroom @relation(fields: [classroomId], references: [id])
+  role      Role      @relation(fields: [roleId], references: [id])
+
+  @@id([userId, folderId, classroomId])
+  @@index([userId, folderId, classroomId])
+  @@map("users_folders_classrooms")
+}

@@ -1,0 +1,18 @@
+model Classroom {
+  id            String   @id @default(uuid())
+  classroomName String   @map("classroom_name")
+  description   String?
+  ownerId       String   @map("owner_id")
+  isPrivate     Boolean  @default(false)
+  tags          String[]
+  avatar        String?
+  cover         String?
+  createdAt     DateTime @default(now()) @map("created_at")
+  updatedAt     DateTime @updatedAt @map("updated_at")
+  
+  // Relations
+  owner          User     @relation(fields: [ownerId], references: [id])
+  usersFoldersClassrooms UsersFoldersClassrooms[]
+  
+  @@map("classrooms")
+}
